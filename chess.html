@@ -54,19 +54,19 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     
                     <!-- Image 1 -->
-                    <img src="ch1.jpg" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Move+1';" alt="Chess move 1" class="w-full h-auto object-cover rounded-lg shadow-md">
+                    <img src="ch1.jpg" onclick="openModal('ch1.jpg')" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Move+1';" alt="Chess move 1" class="w-full h-auto object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition-opacity">
                     
                     <!-- Image 2 -->
-                    <img src="ch2.jpg" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Move+2';" alt="Chess move 2" class="w-full h-auto object-cover rounded-lg shadow-md">
+                    <img src="ch2.jpg" onclick="openModal('ch2.jpg')" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Move+2';" alt="Chess move 2" class="w-full h-auto object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition-opacity">
 
                     <!-- Image 3 -->
-                    <img src="ch3.jpg" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Move+3';" alt="Chess move 3" class="w-full h-auto object-cover rounded-lg shadow-md">
+                    <img src="ch3.jpg" onclick="openModal('ch3.jpg')" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Move+3';" alt="Chess move 3" class="w-full h-auto object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition-opacity">
 
                     <!-- Image 4 -->
-                    <img src="ch4.jpg" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Move+4';" alt="Chess move 4" class="w-full h-auto object-cover rounded-lg shadow-md">
+                    <img src="ch4.jpg" onclick="openModal('ch4.jpg')" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Move+4';" alt="Chess move 4" class="w-full h-auto object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition-opacity">
 
                     <!-- Image 5 -->
-                    <img src="ch5.jpg" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Move+5';" alt="Chess move 5" class="w-full h-auto object-cover rounded-lg shadow-md">
+                    <img src="ch5.jpg" onclick="openModal('ch5.jpg')" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Move+5';" alt="Chess move 5" class="w-full h-auto object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition-opacity">
 
                 </div>
             </div>
@@ -77,6 +77,48 @@
             <p>&copy; 2025 Saman Meihami. All rights reserved.</p>
         </footer>
     </div>
+
+    <!-- Modal for displaying larger images -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 hidden z-50 transition-opacity duration-300">
+        <span id="closeModal" class="absolute top-4 right-6 text-white text-5xl font-bold cursor-pointer hover:text-gray-300">&times;</span>
+        <img id="modalImage" src="" alt="Enlarged chess move" class="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl">
+    </div>
+
+    <script>
+        // Get the modal elements
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        const closeBtn = document.getElementById('closeModal');
+
+        // Function to open the modal
+        function openModal(imageSrc) {
+            if (modal && modalImg) {
+                modal.classList.remove('hidden');
+                modalImg.src = imageSrc;
+            }
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Event listeners to close the modal
+        if (closeBtn) {
+            closeBtn.onclick = closeModal;
+        }
+
+        if (modal) {
+            // Close modal if the background is clicked
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>
