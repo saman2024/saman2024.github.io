@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linguistic Example Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Times+New+Roman&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+        }
+        .active-nav { color: #1D4ED8; font-weight: 500; }
+        .editable-line {
+            min-height: 2.5rem;
+            border: 1px solid #D1D5DB;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            line-height: 1.4;
+            transition: all 0.2s;
+            outline: none;
+            cursor: text;
+        }
+        .main-input {
+            min-height: 10rem;
+        }
+        .editable-line:focus {
+            border-color: #1D4ED8;
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.3);
+        }
+        #output-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #output-image-container {
+            background-color: white !important; 
+            border: 1px solid #E5E7EB;
+            padding: 2rem;
+            margin-top: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-align: left;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.2rem;
+            display: grid;
+            grid-template-columns: var(--number-width, 3rem) 1fr;
+            padding-left: 0; 
+            padding-right: 0;
+            padding-top: 0;
+            padding-bottom: 0.5rem;
+        }
+        .example-content-cell {
+            grid-column: 2 / 3;
+            padding-right: 2rem;
+        }
+        .example-number-cell {
+            grid-column: 1 / 2;
+            text-align: right;
+            font-weight: bold;
+            font-family: 'Times New Roman', serif;
+            padding-right: 0.5rem;
+        }
+        #output-image-container > div:nth-child(1),
+        #output-image-container > div:nth-child(2) {
+            vertical-align: bottom;
+            display: inline-block;
+            line-height: var(--internal-line-height, 1.0);
+        }
+        #output-image-container > div:nth-child(1) { grid-column: 1 / 2; }
+        #output-image-container > div:nth-child(2) { grid-column: 2 / 3; }
+        
+        .alignment-container {
+            display: flex;
+            flex-wrap: nowrap;
+        }
+        .ipa-token, .gloss-token {
+            display: inline-block;
+            box-sizing: border-box; 
+            padding-right: 12px; 
+            text-align: left;
+        }
+        .ipa-token {
+            font-family: 'Doulos SIL', 'Times New Roman', serif;
+            font-size: 1.25rem;
+        }
+        .gloss-token {
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+        .small-caps-suffix {
+            text-transform: lowercase;
+            font-variant: small-caps;
+        }
+        .format-small-caps {
+            font-variant: small-caps;
+        }
+        .rich-text-hint {
+            font-size: 0.75rem;
+            color: #4B5563;
+            margin-bottom: 0.5rem;
+        }
+        
+        #formatting-toolbar {
+            background-color: #F9FAFB;
+            padding: 8px;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+        }
+        .ribbon-group {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .ribbon-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .ribbon-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ribbon-group-label {
+            margin-top: 4px;
+            font-size: 0.75rem;
+            color: #6B7281;
+        }
+        .toolbar-button, .font-select {
+            border: 1px solid transparent;
+            background-color: #F9FAFB;
+            border-radius: 4px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            transition: background-color 0.2s;
+        }
+        .toolbar-button:hover, .font-select:hover {
+            background-color: #E5E7EB;
+            border-color: #D1D5DB;
+        }
+        .toolbar-button {
+            width: 28px;
+        }
+        .font-select {
+            padding: 0 4px;
+            font-size: 0.875rem;
+        }
+
+        .color-swatch {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #E5E7EB;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+            border: 1px solid #3B82F6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="max-w-4xl mx-auto p-6 md:p-8 bg-white/95 shadow-md">
+        <header class="flex flex-col md:flex-row items-center justify-between">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900">Saman Meihami</h1>
+                <p class="text-lg text-blue-700">[sɑˈmɑn mɛhɐˈmi]</p>
+            </div>
+            <nav class="mt-4 md:mt-0">
+                <ul class="flex space-x-6 text-gray-600">
+                    <li><a href="./index.html" class="hover:text-blue-700">Home</a></li>
+                    <li><a href="./research.html" class="hover:text-blue-700">Research</a></li>
+                    <li><a href="./publications.html" class="hover:text-blue-700">Publications</a></li>
+                    <li><a href="./chess.html" class="hover:text-blue-700">Chess</a></li>
+                    <li><a href="./linguistic_example_generator.html" class="hover:text-blue-700 active-nav">Linguistic Example Generator</a></li>
+                    <li><a href="./contact.html" class="hover:text-blue-700">Contact</a></li>
+                </ul>
+            </nav>
+        </header>
+    </div>
+
+    <div class="max-w-4xl mx-auto p-6 md:p-8 mt-6">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6">Linguistic Example Generator</h2>
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl border border-gray-200">
+            <p class="text-sm text-gray-600 mb-4">
+                Enter your example components below. Use SHIFT+ENTER to create new lines.
+            </p>
+
+            <div id="formatting-toolbar" class="mb-4">
+                <div class="ribbon-group">
+                    <div class="ribbon-controls">
+                        <div class="ribbon-row">
+                            <select id="font-family-select" onchange="formatFont()" class="font-select" title="Font Family">
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Doulos SIL, serif">Doulos SIL (IPA)</option>
+                                <option value="Inter, sans-serif">Inter (Default)</option>
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="Courier New, monospace">Monospace</option>
+                            </select>
+                            <button onclick="formatText('fontsize', '6')" class="toolbar-button" title="Larger Text"><i class="fas fa-plus"></i></button>
+                            <button onclick="formatText('fontsize', '3')" class="toolbar-button" title="Smaller Text"><i class="fas fa-minus"></i></button>
+                        </div>
+                        <div class="ribbon-row">
+                            <button onclick="formatText('bold')" class="toolbar-button" title="Bold"><i class="fas fa-bold"></i></button>
+                            <button onclick="formatText('italic')" class="toolbar-button" title="Italic"><i class="fas fa-italic"></i></button>
+                            <button onclick="formatText('underline')" class="toolbar-button" title="Underline"><i class="fas fa-underline"></i></button>
+                            <button onclick="applySmallCaps()" class="toolbar-button" title="Small Caps" style="font-weight: bold;">SC</button>
+                            <div id="color-palette" class="flex items-center gap-1 ml-2">
+                                </div>
+                        </div>
+                    </div>
+                    <div class="ribbon-group-label">Font</div>
+                </div>
+            </div>
+            
+            <p class="rich-text-hint">Hint: For rich formatting, select text and use the toolbar above.</p>
+            
+            <div id="input-interface" class="space-y-4">
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Example Number (e.g., 1 or a):</label>
+                    <div id="example-number-input" class="editable-line bg-gray-50" contenteditable="true"></div>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Combined Example Input (4 Lines):</label>
+                    <div id="combined-input" class="editable-line main-input bg-gray-50" contenteditable="true"></div>
+                </div>
+                <div class="flex space-x-4">
+                    <div class="flex flex-col w-full">
+                        <label class="text-sm font-medium text-gray-700 mb-1">Vertical Spacing Factor (Em unit, e.g., 0.5):</label>
+                        <input type="number" id="line-spacing-factor" value="0.5" min="-1.0" step="0.01" class="editable-line bg-gray-50" style="min-height: auto;"/>
+                    </div>
+                </div>
+                <button onclick="generateExample()" class="w-full mt-6 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-lg">
+                    Generate Example Image
+                </button>
+            </div>
+
+            <div id="output-area">
+                <h3 class="text-2xl font-semibold mt-8 mb-4 border-b pb-2 text-gray-900">Generated Example</h3>
+                <div id="output-image-container" class="output-block">
+                    <p class="text-gray-500 italic">Input data to generate an example.</p>
+                </div>
+                <p id="print-hint" class="text-center text-sm text-gray-500 mt-4 hidden">
+                    Hint: Use your browser's print function (Ctrl+P) for a high-quality output.
+                </p>
+                <div id="download-hint" class="flex justify-center space-x-2 mt-4 hidden">
+                    <button id="copy-button" class="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"><i class="fas fa-copy mr-2"></i>Copy Image</button>
+                    <button id="download-button" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"><i class="fas fa-download mr-2"></i>Download as PNG</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="text-center mt-10 text-gray-500 text-sm p-6">
+        <p>&copy; 2025 Saman Meihami. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function formatText(command, value = null) { 
+            document.execCommand(command, false, value);
+        }
+        function formatFont() { 
+            const fontFamilySelect = document.getElementById('font-family-select'); 
+            formatText('fontName', fontFamilySelect.value);
+        }
+
+        function applySmallCaps() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (!range.collapsed) {
+                    const span = document.createElement('span');
+                    span.className = 'format-small-caps';
+                    try {
+                        range.surroundContents(span);
+                    } catch (e) {
+                        console.error("Could not apply small caps:", e);
+                        alert("The selected text might be too complex to apply this style. Please select a continuous block of text.");
+                    }
+                }
+            }
+        }
+
+        const colors = [
+            '#000000', '#4B5563', '#EF4444', '#F97316', '#F59E0B', '#84CC16',
+            '#10B981', '#14B8A6', '#06B6D4', '#3B82F6', '#8B5CF6', '#EC4899'
+        ];
+        function populateColorPalette() {
+            const palette = document.getElementById('color-palette');
+            colors.forEach(color => {
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch';
+                swatch.style.backgroundColor = color;
+                swatch.dataset.color = color;
+                swatch.title = color;
+                
+                swatch.addEventListener('mousedown', (event) => {
+                    event.preventDefault();
+                });
+                swatch.addEventListener('click', applyColorFromSwatch);
+                palette.appendChild(swatch);
+            });
+        }
+        function applyColorFromSwatch(event) {
+            const color = event.target.dataset.color;
+            if (color) {
+                formatText('foreColor', color);
+            }
+        }
+        
+        function getExampleNumber(input) {
+            if (!input) return '';
+            const cleanInput = input.replace(/<[^>]*>?/gm, '').trim();
+            if (/^\d+$/.test(cleanInput)) return `(${cleanInput})`;
+            if (/^[a-z]$/i.test(cleanInput)) return `${cleanInput}.`;
+            return `${input.trim()}`;
+        }
+        
+        function generateAlignedInterlinear(ipaHtml, glossHtml) {
+            // This is a robust tokenizer that correctly handles HTML tags.
+            function tokenizeRichText(html) {
+                const tokens = [];
+                let currentToken = '';
+                let inTag = false;
+
+                for (let i = 0; i < html.length; i++) {
+                    const char = html[i];
+
+                    if (char === '<') {
+                        inTag = true;
+                    }
+
+                    if (char === ' ' && !inTag) {
+                        if (currentToken.length > 0) {
+                            tokens.push(currentToken);
+                        }
+                        currentToken = ''; 
+                    } else {
+                        currentToken += char;
+                    }
+                    
+                    if (char === '>') {
+                        inTag = false;
+                    }
+                }
+
+                if (currentToken.length > 0) {
+                    tokens.push(currentToken);
+                }
+
+                return tokens.filter(t => t.trim().length > 0);
+            }
+
+            const ipaTokens = tokenizeRichText(ipaHtml);
+            const glossTokens = tokenizeRichText(glossHtml);
+            
+            const tempDiv = document.createElement('div');
+            Object.assign(tempDiv.style, { position: 'absolute', visibility: 'hidden', whiteSpace: 'nowrap', fontFamily: "'Times New Roman', serif", fontSize: '1.2rem' });
+            document.body.appendChild(tempDiv);
+            
+            let alignedIPA = '', alignedGloss = '', tokenIndex = 0;
+            const tokenSpacing = 12;
+            
+            while (tokenIndex < Math.max(ipaTokens.length, glossTokens.length)) {
+                const ipaTokenHtml = ipaTokens[tokenIndex] || '';
+                const glossTokenHtml = glossTokens[tokenIndex] || '';
+                
+                // The line that caused automatic small-caps has been REMOVED.
+                
+                tempDiv.innerHTML = `<span class="ipa-token">${ipaTokenHtml}</span>`;
+                const ipaWidth = tempDiv.offsetWidth;
+                
+                tempDiv.innerHTML = `<span class="gloss-token">${glossTokenHtml}</span>`;
+                const glossWidth = tempDiv.offsetWidth;
+                
+                const maxWidth = Math.max(ipaWidth, glossWidth) + tokenSpacing; 
+                
+                alignedIPA += `<span class="ipa-token" style="width: ${maxWidth}px; text-align: left; padding-right: 0;">${ipaTokenHtml}</span>`;
+                alignedGloss += `<span class="gloss-token" style="width: ${maxWidth}px; text-align: left; padding-right: 0;">${glossTokenHtml}</span>`;
+                
+                tokenIndex++;
+            }
+            
+            document.body.removeChild(tempDiv);
+            return { ipa: alignedIPA, gloss: alignedGloss };
+        }
+
+        function copyImageToClipboard() {
+            const outputElement = document.getElementById('output-image-container');
+            const copyButton = document.getElementById('copy-button');
+            const originalButtonContent = copyButton.innerHTML;
+            copyButton.disabled = true;
+            copyButton.innerHTML = 'Copying...';
+            html2canvas(outputElement, { backgroundColor: '#ffffff', scale: 2, useCORS: true }).then(canvas => {
+                canvas.toBlob(blob => {
+                    if (!blob) { alert("Failed to copy image: could not create image data."); copyButton.disabled = false; copyButton.innerHTML = originalButtonContent; return; }
+                    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(() => {
+                        copyButton.innerHTML = 'Copied!';
+                        setTimeout(() => { copyButton.disabled = false; copyButton.innerHTML = originalButtonContent; }, 2000);
+                    }).catch(err => {
+                        alert("Failed to copy image. Your browser might not support this feature.");
+                        copyButton.innerHTML = 'Failed!';
+                        setTimeout(() => { copyButton.disabled = false; copyButton.innerHTML = originalButtonContent; }, 3000);
+                    });
+                }, 'image/png');
+            }).catch(err => { alert("Failed to generate image for copying."); copyButton.disabled = false; copyButton.innerHTML = originalButtonContent; });
+        }
+
+        function captureAndDownload() {
+            const outputElement = document.getElementById('output-image-container');
+            const downloadButton = document.getElementById('download-button');
+            const originalButtonContent = downloadButton.innerHTML;
+            downloadButton.disabled = true;
+            downloadButton.innerHTML = 'Generating...';
+            html2canvas(outputElement, { backgroundColor: '#ffffff', scale: 2, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = `linguistic_example_${Date.now()}.png`;
+                link.click();
+                downloadButton.disabled = false;
+                downloadButton.innerHTML = originalButtonContent;
+            }).catch(err => { alert("Failed to generate image."); downloadButton.disabled = false; downloadButton.innerHTML = originalButtonContent; });
+        }
+
+        function generateExample() {
+            const spacingFactor = parseFloat(document.getElementById('line-spacing-factor').value);
+            const rowMargin = !isNaN(spacingFactor) ? `${spacingFactor}em` : '0.5em'; 
+            const numberInputDiv = document.getElementById('example-number-input');
+            const formattedNumberPrefixText = getExampleNumber(numberInputDiv.innerHTML.replace(/<[^>]*>?/gm, '').trim());
+            const tempNumDiv = document.createElement('span');
+            Object.assign(tempNumDiv.style, { visibility: 'hidden', position: 'absolute', whiteSpace: 'nowrap', fontWeight: 'bold', fontFamily: 'Times New Roman, serif' });
+            tempNumDiv.innerHTML = formattedNumberPrefixText;
+            document.body.appendChild(tempNumDiv);
+            const numberWidth = tempNumDiv.offsetWidth;
+            document.body.removeChild(tempNumDiv);
+            const outputContainer = document.getElementById('output-image-container');
+            
+            outputContainer.style.gridTemplateColumns = '';
+            outputContainer.style.border = '';
+            outputContainer.style.setProperty('--row-margin', rowMargin);
+            
+            const combinedInputHTML = document.getElementById('combined-input').innerHTML.trim();
+            if (!combinedInputHTML) { 
+                outputContainer.innerHTML = '<p class="text-red-500 font-medium">Please enter data to generate an example.</p>'; 
+                return; 
+            }
+            
+            const lines = combinedInputHTML.replace(/<div>/g, '\n').replace(/<\/div>|<p>|<\/p>|<br\s*\/?>/g, '\n').split('\n').map(line => line.trim()).filter(line => line.length > 0); 
+            
+            if (lines.length < 4) { 
+                outputContainer.innerHTML = '<p class="text-red-500 font-medium">Please ensure you have entered four lines.</p>'; 
+                return; 
+            }
+            
+            const [originalHTML, ipaHTML, glossHTML, translationHTML] = lines.slice(0, 4);
+            const alignedResult = generateAlignedInterlinear(ipaHTML, glossHTML);
+            const numberPrefixContent = formattedNumberPrefixText ? `<span class="example-number-prefix">${formattedNumberPrefixText}</span>` : '';
+            
+            outputContainer.innerHTML = `
+                <div class="example-number-cell">${numberPrefixContent}</div>
+                <div class="example-content-cell text-lg text-gray-900" style="margin-bottom: var(--row-margin, 0.5em);">${originalHTML || '---'}</div>
+                <div class="example-number-cell"></div>
+                <div class="example-content-cell text-gray-600" style="margin-bottom: var(--row-margin, 0.5em);"><div class="alignment-container">${alignedResult.ipa || '---'}</div></div>
+                <div class="example-number-cell"></div>
+                <div class="example-content-cell text-gray-700" style="margin-bottom: var(--row-margin, 0.5em);"><div class="alignment-container">${alignedResult.gloss || '---'}</div></div>
+                <div class="example-number-cell"></div>
+                <div class="example-content-cell output-translation text-base text-gray-800" style="font-style: italic; margin-bottom: 0 !important;">"${translationHTML || '---'}"</div>`;
+
+            void outputContainer.offsetHeight; 
+
+            const contentCells = outputContainer.querySelectorAll('.example-content-cell');
+            let maxContentWidth = 0;
+            contentCells.forEach(cell => {
+                if (cell.scrollWidth > maxContentWidth) {
+                    maxContentWidth = cell.scrollWidth;
+                }
+            });
+
+            outputContainer.style.gridTemplateColumns = `${numberWidth + 8}px ${maxContentWidth}px`;
+
+            document.getElementById('print-hint').style.display = 'block';
+            document.getElementById('download-hint').style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateColorPalette();
+            document.getElementById('download-button').addEventListener('click', captureAndDownload);
+            document.getElementById('copy-button').addEventListener('click', copyImageToClipboard);
+        });
+    </script>
+</body>
+</html>
