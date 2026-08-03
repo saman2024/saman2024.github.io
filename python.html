@@ -75,10 +75,8 @@
 
                     <!-- JavaScript Code Injection (Bypasses GitHub's HTML Minifier) -->
                     <script>
-                        const initialCode = `def greet(name):
-    return f"Hello, {name}! Welcome to the code editor."
-
-print(greet("World"))`;
+                        // \n creates a new line, \t creates an indent
+                        const initialCode = "def greet(name):\n\treturn f\"Hello, {name}! Welcome to the code editor.\"\n\nprint(greet(\"World\"))";
                         
                         document.getElementById('python-editor').textContent = initialCode;
                     </script>
