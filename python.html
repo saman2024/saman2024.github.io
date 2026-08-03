@@ -1,0 +1,95 @@
+<!-- ================================================================================= -->
+<!-- FILE: python.html                                                                 -->
+<!-- ================================================================================= -->
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saman Meihami - Python Playground</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- PyScript CSS and JS -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-image: url('b.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .active-nav { color: #1D4ED8; font-weight: 500; }
+        
+        /* PyScript Editor Overrides to match your theme */
+        .py-repl-container {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="max-w-6xl mx-auto p-6 md:p-8">
+        <!-- Header Section -->
+        <header class="flex flex-col md:flex-row items-center justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900">Saman Meihami</h1>
+                <p class="text-lg text-blue-700">Ph.D. Candidate in Linguistics</p>
+                <p class="text-lg text-blue-700">University of Arizona</p>
+            </div>
+            <nav class="mt-4 md:mt-0">
+                <ul class="flex flex-wrap justify-center space-x-4 md:space-x-6 text-gray-600">
+                    <li><a href="./index.html" class="hover:text-blue-700">Home</a></li>
+                    <li><a href="./research.html" class="hover:text-blue-700">Research</a></li>
+                    <li><a href="./publications.html" class="hover:text-blue-700">Publications</a></li>
+                    <li><a href="./chess.html" class="hover:text-blue-700">Chess</a></li>
+                    <li><a href="./ling.html" class="hover:text-blue-700">Generate Linguistic Examples</a></li>
+                    <li><a href="./python.html" class="hover:text-blue-700 active-nav">Python</a></li>
+                    <li><a href="./contact.html" class="hover:text-blue-700">Contact</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <div class="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-lg border border-gray-200">
+                <div class="space-y-6">
+                    <h2 class="text-3xl font-bold text-gray-900 border-b pb-3">Interactive Python Editor</h2>
+                    
+                    <p class="text-gray-700">
+                        Write and execute Python code directly in your browser. This tool uses WebAssembly to securely run scripts on your local machine without needing a server connection. Press the play button in the bottom right of the editor to test your code.
+                    </p>
+
+                    <!-- PyScript Terminal/Editor Setup -->
+                    <div class="py-repl-container mt-6">
+                        <script type="py" src="" config="" terminal></script>
+                        <py-repl>
+# Write your Python script here
+def greet(name):
+    return f"Hello, {name}! Welcome to the code editor."
+
+print(greet("World"))
+                        </py-repl>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center mt-10 text-gray-500 text-sm">
+            <p>&copy; 2025 Saman Meihami. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Analytics -->
+    <script data-goatcounter="https://sam88.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
