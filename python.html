@@ -68,19 +68,10 @@
                         Write and execute Python code directly in your browser. This tool uses WebAssembly to securely run scripts on your local machine without needing a server connection. Press the play button in the bottom right of the editor to test your code.
                     </p>
 
-                    <!-- PyScript Terminal/Editor Setup -->
+                    <!-- PyScript Terminal/Editor Setup (Completely empty to bypass formatting issues) -->
                     <div class="py-repl-container mt-6">
-                        <py-repl id="python-editor"></py-repl>
+                        <py-repl></py-repl>
                     </div>
-
-                    <!-- JavaScript Code Injection (Bypasses GitHub's HTML Minifier) -->
-                    <script>
-                        // \n creates a new line, \t creates an indent
-                        const initialCode = "def greet(name):\n\treturn f\"Hello, {name}! Welcome to the code editor.\"\n\nprint(greet(\"World\"))";
-                        
-                        document.getElementById('python-editor').textContent = initialCode;
-                    </script>
-
                 </div>
             </div>
         </main>
