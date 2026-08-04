@@ -4,35 +4,67 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-    <script src="mini-coi.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- IMPORTANT: mini-coi.js must be the very first script in <head>, before anything
+         else, so PyScript's worker-based editors can talk back to the page. If you
+         already have mini-coi.js in the root of your site from the earlier fix, keep
+         this line — it must stay first. -->
+    <script src="mini-coi.js"></script>
+
     <title>Saman Meihami - Python Playground</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    
+
     <!-- PyScript CSS and JS -->
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
-    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2026.2.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2026.2.1/core.js"></script>
 
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
+        body {
+            font-family: 'Inter', sans-serif;
             background-image: url('b.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }
         .active-nav { color: #1D4ED8; font-weight: 500; }
-        
+
         /* PyScript Editor Overrides to match your theme */
         .py-repl-container {
             border-radius: 0.5rem;
             overflow: hidden;
             border: 1px solid #e5e7eb;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tool switcher */
+        .tool-tab {
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            border: 1px solid #d1d5db;
+            color: #4b5563;
+            font-size: 0.95rem;
+            font-weight: 500;
+            background: white;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .tool-tab:hover {
+            border-color: #1D4ED8;
+            color: #1D4ED8;
+        }
+        .tool-tab.active {
+            background: #1D4ED8;
+            border-color: #1D4ED8;
+            color: white;
+        }
+        .tool-tab:focus-visible {
+            outline: 2px solid #1D4ED8;
+            outline-offset: 2px;
         }
     </style>
 </head>
@@ -63,18 +95,72 @@
         <main>
             <div class="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-lg border border-gray-200">
                 <div class="space-y-6">
-                    <h2 class="text-3xl font-bold text-gray-900 border-b pb-3">Interactive Python Editor</h2>
-                    
+                    <h2 class="text-3xl font-bold text-gray-900 border-b pb-3">Interactive Linguistics Tools</h2>
+
                     <p class="text-gray-700">
-                        Write and execute Python code directly in your browser. This tool uses WebAssembly to securely run scripts on your local machine without needing a server connection. Press the play button in the bottom right of the editor to test your code.
+                        Explore a few small tools that run entirely in your browser via WebAssembly — no
+                        server, nothing installed. Pick a tool below, then press the play button in the
+                        bottom right of the editor to run it.
                     </p>
 
-                    <!-- PyScript Terminal/Editor Setup (Completely empty to bypass formatting issues) -->
-                    <div class="py-repl-container mt-6">
-                        <script type="py-editor">
-                    # Write your Python code here
-                    print("Hello, world!")
-                        </script>
+                    <!-- Tool switcher -->
+                    <div class="flex flex-wrap gap-3" role="tablist" aria-label="Choose a tool">
+                        <button type="button" class="tool-tab active" data-tool="python" role="tab" aria-selected="true">
+                            Python Playground
+                        </button>
+                        <button type="button" class="tool-tab" data-tool="morph" role="tab" aria-selected="false">
+                            Morphological Analyzer
+                        </button>
+                    </div>
+
+                    <!-- Python Playground panel -->
+                    <div id="tool-python" class="tool-panel" role="tabpanel">
+                        <p class="text-gray-600 text-sm mb-3">
+                            A blank Python editor — write and run anything.
+                        </p>
+                        <div class="py-repl-container">
+                            <script type="py-editor">
+# Write your Python code here
+print("Hello, world!")
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- Morphological Analyzer panel -->
+                    <div id="tool-morph" class="tool-panel hidden" role="tabpanel">
+                        <p class="text-gray-600 text-sm mb-3">
+                            A simple rule-based analyzer that splits an English word into a stem and a
+                            suffix. Change <code class="bg-gray-100 px-1 rounded">WORD</code> below, or
+                            extend the suffix rules, and press run.
+                        </p>
+                        <div class="py-repl-container">
+                            <script type="py-editor">
+# A simple rule-based morphological analyzer.
+# Try changing WORD below, or extend the suffix rules to match your own work.
+
+SUFFIXES = [
+    ("ational", "ate"), ("tional", "tion"), ("edly", ""), ("ing", ""),
+    ("ed", ""), ("ies", "y"), ("es", ""), ("s", ""),
+    ("ness", ""), ("ment", ""), ("ful", ""), ("less", ""),
+    ("able", ""), ("ible", ""), ("ly", ""), ("er", ""), ("est", ""),
+]
+
+def analyze(word):
+    for suffix, replacement in SUFFIXES:
+        if word.endswith(suffix) and len(word) - len(suffix) >= 2:
+            stem = word[: -len(suffix)] + replacement
+            return stem, suffix
+    return word, None
+
+WORD = "unhappiness"
+stem, suffix = analyze(WORD)
+
+if suffix:
+    print(f"{WORD} -> stem: '{stem}' + suffix: '-{suffix}'")
+else:
+    print(f"{WORD} -> no suffix pattern matched (stem: '{stem}')")
+                            </script>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -88,5 +174,24 @@
 
     <!-- Analytics -->
     <script data-goatcounter="https://sam88.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+    <!-- Tool switcher logic -->
+    <script>
+        document.querySelectorAll('.tool-tab').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.tool-tab').forEach(function (b) {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-selected', 'false');
+                });
+                btn.classList.add('active');
+                btn.setAttribute('aria-selected', 'true');
+
+                document.querySelectorAll('.tool-panel').forEach(function (p) {
+                    p.classList.add('hidden');
+                });
+                document.getElementById('tool-' + btn.dataset.tool).classList.remove('hidden');
+            });
+        });
+    </script>
 </body>
 </html>
