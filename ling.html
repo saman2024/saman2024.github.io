@@ -1,24 +1,39 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linguistic Example Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Times+New+Roman&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-image: url('b.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-        .active-nav { color: #1D4ED8; font-weight: 500; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linguistic example generator | Saman Meihami</title>
+  <meta name="description" content="Linguistic example generator by Saman Meihami: format glossed linguistic examples as clean images for papers, handouts and slides.">
+  <link rel="canonical" href="https://samanmeihami.com/ling.html">
+
+  <!-- Link previews (LinkedIn, Slack, X, email) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Saman Meihami">
+  <meta property="og:title" content="Linguistic example generator | Saman Meihami">
+  <meta property="og:description" content="Linguistic example generator by Saman Meihami: format glossed linguistic examples as clean images for papers, handouts and slides.">
+  <meta property="og:url" content="https://samanmeihami.com/ling.html">
+  <meta property="og:image" content="https://samanmeihami.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Browser tab icon -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <!-- Fonts: Charis SIL (SIL's typeface for linguists, with full IPA) and Source Sans 3 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Charis+SIL:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;600&display=swap">
+  <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="tools.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+        
+        
         .editable-line {
             min-height: 2.5rem;
             border: 1px solid #D1D5DB;
@@ -34,8 +49,8 @@
             min-height: 10rem;
         }
         .editable-line:focus {
-            border-color: #1D4ED8;
-            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.3);
+            border-color: #1f5f6e;
+            box-shadow: 0 0 0 3px rgba(31, 95, 110, 0.25);
         }
         #output-area {
             display: flex;
@@ -168,34 +183,46 @@
         }
         .color-swatch:hover {
             transform: scale(1.1);
-            border: 1px solid #3B82F6;
+            border: 1px solid #1f5f6e;
         }
-    </style>
+    
+#output-image-container > p:only-child { grid-column: 1 / -1; padding: 1rem 1.5rem 0.5rem; }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body>
+  <a class="skip" href="#main">Skip to content</a>
 
-    <div class="max-w-4xl mx-auto p-6 md:p-8 bg-white/95 shadow-md">
-        <header class="flex flex-col md:flex-row items-center justify-between">
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900">Saman Meihami</h1>
-                <p class="text-lg text-blue-700">[sɑˈmɑn mɛhɐˈmi]</p>
-            </div>
-            <nav class="mt-4 md:mt-0">
-                <ul class="flex space-x-6 text-gray-600">
-                    <li><a href="./index.html" class="hover:text-blue-700">Home</a></li>
-                    <li><a href="./research.html" class="hover:text-blue-700">Research</a></li>
-                    <li><a href="./publications.html" class="hover:text-blue-700">Publications</a></li>
-                    <li><a href="./chess.html" class="hover:text-blue-700">Chess</a></li>
-                    <li><a href="./linguistic_example_generator.html" class="hover:text-blue-700 active-nav">Linguistic Example Generator</a></li>
-                    <li><a href="./contact.html" class="hover:text-blue-700">Contact</a></li>
-                </ul>
-            </nav>
-        </header>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <span class="brand-name">Saman Meihami</span>
+        <span class="brand-ipa">[sɑˈmɑn mɛhɐˈmi]</span>
+        <span class="brand-role">Ph.D. Candidate in Linguistics, University of Arizona</span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="research.html">Research</a></li>
+        <li><a href="publications.html">Publications</a></li>
+        <li><a href="teaching.html">Teaching</a></li>
+        <li><a href="ling.html" aria-current="page">Tools</a></li>
+        <li><a href="chess.html">Chess</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
     </div>
+  </header>
 
-    <div class="max-w-4xl mx-auto p-6 md:p-8 mt-6">
-        <h2 class="text-3xl font-bold text-gray-900 mb-6">Linguistic Example Generator</h2>
-        <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl border border-gray-200">
+  <main id="main">
+    <div class="wrap">
+      <h1>Tools</h1>
+      <ul class="tool-switch" aria-label="Tools">
+        <li><a href="ling.html" aria-current="page">Linguistic example generator</a></li>
+        <li><a href="python.html">Python tools</a></li>
+      </ul>
+      <h2 class="tool-title">Linguistic example generator</h2>
+      <p class="measure">This tool formats glossed linguistic examples, such as an original sentence with its gloss and translation, as a clean, numbered example that you can download or copy into papers, handouts and slides.</p>
+      <div class="tool-card">
             <p class="text-sm text-gray-600 mb-4">
                 Enter your example components below. Use SHIFT+ENTER to create new lines.
             </p>
@@ -244,7 +271,7 @@
                         <input type="number" id="line-spacing-factor" value="0.5" min="-1.0" step="0.01" class="editable-line bg-gray-50" style="min-height: auto;"/>
                     </div>
                 </div>
-                <button onclick="generateExample()" class="w-full mt-6 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-lg">
+                <button onclick="generateExample()" class="btn btn-solid w-full mt-6">
                     Generate Example Image
                 </button>
             </div>
@@ -258,17 +285,13 @@
                     Hint: Use your browser's print function (Ctrl+P) for a high-quality output.
                 </p>
                 <div id="download-hint" class="flex justify-center space-x-2 mt-4 hidden">
-                    <button id="copy-button" class="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"><i class="fas fa-copy mr-2"></i>Copy Image</button>
-                    <button id="download-button" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"><i class="fas fa-download mr-2"></i>Download as PNG</button>
+                    <button id="copy-button" class="btn btn-line"><i class="fas fa-copy mr-2"></i>Copy Image</button>
+                    <button id="download-button" class="btn btn-solid"><i class="fas fa-download mr-2"></i>Download as PNG</button>
                 </div>
             </div>
-        </div>
+      </div>
     </div>
-    
-    <footer class="text-center mt-10 text-gray-500 text-sm p-6">
-        <p>&copy; 2025 Saman Meihami. All rights reserved.</p>
-    </footer>
-
+  </main>
     <script>
         function formatText(command, value = null) { 
             document.execCommand(command, false, value);
@@ -502,5 +525,14 @@
             document.getElementById('copy-button').addEventListener('click', copyImageToClipboard);
         });
     </script>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>&copy; 2026 Saman Meihami</span>
+      <span>Last updated October 2026</span>
+    </div>
+  </footer>
+
+  <script data-goatcounter="https://sam88.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

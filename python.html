@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- mini-coi.js must stay the first script on this page so the PyScript editors work. -->
+  <script src="mini-coi.js"></script>
+  <title>Python tools | Saman Meihami</title>
+  <meta name="description" content="Interactive linguistics tools by Saman Meihami that run in the browser: a Python playground and a simple rule-based morphological analyzer.">
+  <link rel="canonical" href="https://samanmeihami.com/python.html">
+
+  <!-- Link previews (LinkedIn, Slack, X, email) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Saman Meihami">
+  <meta property="og:title" content="Python tools | Saman Meihami">
+  <meta property="og:description" content="Interactive linguistics tools by Saman Meihami that run in the browser: a Python playground and a simple rule-based morphological analyzer.">
+  <meta property="og:url" content="https://samanmeihami.com/python.html">
+  <meta property="og:image" content="https://samanmeihami.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Browser tab icon -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <!-- Fonts: Charis SIL (SIL's typeface for linguists, with full IPA) and Source Sans 3 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Charis+SIL:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;600&display=swap">
+  <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="tools.css">
+  <link rel="stylesheet" href="https://pyscript.net/releases/2026.2.1/core.css">
+  <script type="module" src="https://pyscript.net/releases/2026.2.1/core.js"></script>
+  <style>
+        
+        
+
+        /* PyScript Editor Overrides to match your theme */
+        .py-repl-container {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tool switcher */
+        .tool-tab {
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            border: 1px solid #d1d5db;
+            color: #4b5563;
+            font-size: 0.95rem;
+            font-weight: 500;
+            background: white;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .tool-tab:hover {
+            border-color: #1f5f6e;
+            color: #1f5f6e;
+        }
+        .tool-tab.active {
+            background: #1f5f6e;
+            border-color: #1f5f6e;
+            color: white;
+        }
+        .tool-tab:focus-visible {
+            outline: 2px solid #1f5f6e;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <span class="brand-name">Saman Meihami</span>
+        <span class="brand-ipa">[sɑˈmɑn mɛhɐˈmi]</span>
+        <span class="brand-role">Ph.D. Candidate in Linguistics, University of Arizona</span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="research.html">Research</a></li>
+        <li><a href="publications.html">Publications</a></li>
+        <li><a href="teaching.html">Teaching</a></li>
+        <li><a href="ling.html" aria-current="page">Tools</a></li>
+        <li><a href="chess.html">Chess</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="wrap">
+      <h1>Tools</h1>
+      <ul class="tool-switch" aria-label="Tools">
+        <li><a href="ling.html">Linguistic example generator</a></li>
+        <li><a href="python.html" aria-current="page">Python tools</a></li>
+      </ul>
+      <div class="space-y-6">
+                    <h2 class="tool-title">Python tools</h2>
+
+                    <p class="text-gray-700">
+                        Explore a few small tools that run entirely in your browser via WebAssembly — no
+                        server, nothing installed. Pick a tool below, then press the play button in the
+                        bottom right of the editor to run it.
+                    </p>
+
+                    <!-- Tool switcher -->
+                    <div class="flex flex-wrap gap-3" role="tablist" aria-label="Choose a tool">
+                        <button type="button" class="tool-tab active" data-tool="python" role="tab" aria-selected="true">
+                            Python Playground
+                        </button>
+                        <button type="button" class="tool-tab" data-tool="morph" role="tab" aria-selected="false">
+                            Morphological Analyzer
+                        </button>
+                    </div>
+
+                    <!-- Python Playground panel -->
+                    <div id="tool-python" class="tool-panel" role="tabpanel">
+                        <p class="text-gray-600 text-sm mb-3">
+                            A blank Python editor — write and run anything.
+                        </p>
+                        <div class="py-repl-container">
+                            <script type="py-editor">
+# Write your Python code here
+print("Hello, world!")
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- Morphological Analyzer panel -->
+                    <div id="tool-morph" class="tool-panel hidden" role="tabpanel">
+                        <p class="text-gray-600 text-sm mb-3">
+                            A simple rule-based analyzer that splits an English word into a stem and a
+                            suffix. Change <code class="bg-gray-100 px-1 rounded">WORD</code> below, or
+                            extend the suffix rules, and press run.
+                        </p>
+                        <div class="py-repl-container">
+                            <script type="py-editor">
+# A simple rule-based morphological analyzer.
+# Try changing WORD below, or extend the suffix rules to match your own work.
+
+SUFFIXES = [
+    ("ational", "ate"), ("tional", "tion"), ("edly", ""), ("ing", ""),
+    ("ed", ""), ("ies", "y"), ("es", ""), ("s", ""),
+    ("ness", ""), ("ment", ""), ("ful", ""), ("less", ""),
+    ("able", ""), ("ible", ""), ("ly", ""), ("er", ""), ("est", ""),
+]
+
+def analyze(word):
+    for suffix, replacement in SUFFIXES:
+        if word.endswith(suffix) and len(word) - len(suffix) >= 2:
+            stem = word[: -len(suffix)] + replacement
+            return stem, suffix
+    return word, None
+
+WORD = "unhappiness"
+stem, suffix = analyze(WORD)
+
+if suffix:
+    print(f"{WORD} -> stem: '{stem}' + suffix: '-{suffix}'")
+else:
+    print(f"{WORD} -> no suffix pattern matched (stem: '{stem}')")
+                            </script>
+                        </div>
+                    </div>
+                
+      </div>
+    </div>
+  </main>
+    <!-- Tool switcher logic -->
+    <script>
+        document.querySelectorAll('.tool-tab').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.tool-tab').forEach(function (b) {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-selected', 'false');
+                });
+                btn.classList.add('active');
+                btn.setAttribute('aria-selected', 'true');
+
+                document.querySelectorAll('.tool-panel').forEach(function (p) {
+                    p.classList.add('hidden');
+                });
+                document.getElementById('tool-' + btn.dataset.tool).classList.remove('hidden');
+            });
+        });
+    </script>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>&copy; 2026 Saman Meihami</span>
+      <span>Last updated October 2026</span>
+    </div>
+  </footer>
+
+  <script data-goatcounter="https://sam88.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
