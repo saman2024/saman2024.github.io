@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Learner Profiles Showdown</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=Noto+Naskh+Arabic:wght@500;700&display=swap">
+<style>
+/* Layout: a projector stage. Round strip on top, one big card in the middle, team scoreboard along the bottom.
+   One deliberate look (ink-blue stage, chalk text) because it is shown on a classroom projector. */
+:root{
+  --stage:#1B2440; --stage-2:#232F52; --card:#F6F2E8; --card-ink:#18203A; --chalk:#EEF0F7; --muted:#9AA6C8;
+  --saffron:#F2B33D; --good:#2FA36B; --bad:#D9534F; --line:rgba(238,240,247,.16);
+  --t1:#F2B33D; --t2:#5BC0EB; --t3:#E86A92; --t4:#8BD17C;
+  --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --ku:"Noto Naskh Arabic", "Atkinson Hyperlegible", serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;background:var(--stage);color:var(--chalk)}
+body{margin:0;font-family:var(--body);font-size:16px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px}
+.app{max-width:1280px;height:100%;margin:0 auto;display:grid;grid-template-rows:auto 1fr auto;gap:14px;min-height:560px}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:2px}
+
+/* top strip */
+.top{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between}
+.brand{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.01em}
+.brand span{color:var(--saffron)}
+.rounds{display:flex;gap:6px;flex-wrap:wrap}
+.rounds .r{font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.rounds .r.on{background:var(--saffron);border-color:var(--saffron);color:var(--card-ink);font-weight:700}
+.ctrl{display:flex;gap:6px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--stage-2);border-radius:10px;padding:8px 14px;cursor:pointer;line-height:1.1}
+.btn:hover{border-color:var(--saffron)}
+.btn.primary{background:var(--saffron);border-color:var(--saffron);color:var(--card-ink);font-weight:700}
+.btn:disabled{opacity:.4;cursor:default}
+.count{font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px;min-width:4.5em;text-align:center}
+
+/* stage card */
+.stage{position:relative;background:var(--card);color:var(--card-ink);border-radius:18px;padding:clamp(18px,3.2vw,40px);display:grid;grid-template-rows:auto 1fr auto;gap:16px;min-height:0;overflow:auto;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:#7A5A12;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.q{font-family:var(--display);font-weight:600;font-size:clamp(22px,2.9vw,40px);line-height:1.18;letter-spacing:-.005em;text-wrap:balance;margin:0;max-width:34ch}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-content:start}
+@media (max-width:720px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;gap:12px;align-items:center;text-align:start;border:2px solid #D9D1BD;background:#FFFDF7;border-radius:12px;padding:12px 16px;font-size:clamp(16px,1.7vw,23px);cursor:pointer;min-width:0}
+.opt b{display:inline-grid;place-items:center;width:1.9em;height:1.9em;border-radius:50%;background:var(--card-ink);color:var(--card);font-size:.8em;flex:none}
+.opt.right{border-color:var(--good);background:#E3F4EA}
+.opt.right b{background:var(--good)}
+.opt.wrong{opacity:.38}
+.why{border-inline-start:5px solid var(--good);background:#EAF2EC;border-radius:8px;padding:12px 16px;font-size:clamp(15px,1.5vw,20px)}
+.timer[hidden]{display:none}
+.timer{position:absolute;top:clamp(14px,2.4vw,30px);inset-inline-end:clamp(14px,2.4vw,30px);width:64px;height:64px}
+.timer svg{width:100%;height:100%;transform:rotate(-90deg)}
+.timer .num{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.timer.done .num{color:var(--bad)}
+
+/* intro + setup */
+.intro h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,5vw,68px);line-height:1;margin:0 0 10px;letter-spacing:-.02em}
+.intro p{font-size:clamp(16px,1.6vw,21px);max-width:60ch;margin:0 0 8px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:10px}
+.rule{background:#EFE8D6;border-radius:12px;padding:12px 14px}
+.rule h3{margin:0 0 4px;font-family:var(--display);font-size:18px}
+.rule p{font-size:15px;margin:0}
+.setup{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-top:14px}
+.setup label{display:grid;gap:4px;font-size:13px;font-weight:700}
+.setup input,.setup select{border:2px solid #D9D1BD;background:#FFFDF7;color:var(--card-ink);border-radius:10px;padding:8px 10px;width:12em}
+
+/* memory sprint */
+.words{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.words{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.word{border:2px solid #D9D1BD;background:#FFFDF7;border-radius:14px;padding:14px;display:grid;gap:2px;text-align:center;min-width:0}
+.word .ku{font-family:var(--ku);font-size:clamp(26px,3vw,40px);line-height:1.3}
+.word .lat{font-size:clamp(15px,1.4vw,19px);color:#5A5F73}
+.word .en{font-family:var(--display);font-weight:600;font-size:clamp(18px,1.9vw,26px)}
+.word .en.blank{color:transparent;border-bottom:2px dashed #C9BFA6}
+.word .no{font-size:12px;color:#8A8166}
+
+/* wager */
+.wagers{display:flex;flex-wrap:wrap;gap:10px}
+.wager{display:grid;gap:6px;border:2px solid #D9D1BD;border-radius:12px;padding:10px 12px;background:#FFFDF7;min-width:10em}
+.wager .nm{font-weight:700}
+.wager input{width:6em;border:2px solid #D9D1BD;border-radius:8px;padding:6px 8px;background:#fff;color:var(--card-ink)}
+.wager .acts{display:flex;gap:6px}
+.wager .acts button{border:0;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700;color:#fff}
+.wager .acts .ok{background:var(--good)} .wager .acts .no{background:var(--bad)}
+.wager .acts button:disabled{opacity:.35;cursor:default}
+
+/* end */
+.podium{display:grid;gap:10px;max-width:640px}
+.pod{display:flex;justify-content:space-between;align-items:center;border-radius:12px;padding:12px 18px;background:#FFFDF7;border:2px solid #D9D1BD;font-size:clamp(18px,2vw,26px)}
+.pod.first{border-color:var(--saffron);background:#FBEFD2}
+.pod .pts{font-family:var(--display);font-weight:800;font-variant-numeric:tabular-nums}
+
+/* scoreboard */
+.board{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:10px}
+@media (max-width:640px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.team{border-radius:14px;padding:10px 14px;background:var(--stage-2);border-top:5px solid var(--c);display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.team .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team .pts{font-family:var(--display);font-weight:800;font-size:clamp(26px,3vw,40px);font-variant-numeric:tabular-nums;color:var(--c);min-width:1.4em;text-align:center}
+.team .pm{display:flex;gap:4px}
+.team .pm button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:transparent;cursor:pointer;font-weight:700}
+.team .pm button:hover{border-color:var(--c)}
+.team.bump .pts{animation:bump .35s ease}
+@keyframes bump{50%{transform:scale(1.25)}}
+@media (prefers-reduced-motion:reduce){.team.bump .pts{animation:none}}
+.keys{font-size:12px;color:var(--muted);text-align:center}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">Learner Profiles <span>Showdown</span></div>
+    <div class="rounds" id="rounds"></div>
+    <div class="ctrl">
+      <button class="btn" id="prev" aria-label="Previous card">←</button>
+      <span class="count" id="count">1 / 1</span>
+      <button class="btn" id="next" aria-label="Next card">→</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage" aria-live="polite"></main>
+
+  <footer>
+    <div class="board" id="board"></div>
+    <p class="keys">Keys: → next · ← back · R reveal · T start timer · 1–4 give that team a point</p>
+  </footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const COLORS = ["var(--t1)","var(--t2)","var(--t3)","var(--t4)"];
+
+/* ------------------------------ content ------------------------------ */
+const ROUNDS = ["Name the ability", "Why are they learning?", "Memory sprint", "Final wager"];
+const CARDS = [
+  {type:"intro"},
+  {type:"mc", round:0, pts:1, q:"Kenji hears ten new Vietnamese syllables once, writes each with the right tone mark, and still recognizes them the next day. Which ability is this?",
+   o:["Rote learning ability","Phonetic coding ability","Inductive learning ability","Grammatical sensitivity"], a:1,
+   why:"Phonetic coding ability: hearing new sounds, linking them to symbols, and remembering them. A good ear."},
+  {type:"mc", round:0, pts:1, q:"Priya has never heard the term \"relative clause,\" but she sees that in \"The cat that the dog chased ran away,\" the part \"that the dog chased\" tells us which cat. Which ability is this?",
+   o:["Grammatical sensitivity","Phonetic coding ability","Rote learning ability","General intelligence"], a:0,
+   why:"Grammatical sensitivity: noticing what job words do in a sentence, without knowing grammar terms."},
+  {type:"mc", round:0, pts:1, q:"Tom sees un-happy, un-kind and un-safe for the first time, and then correctly makes up un-tidy on his own. Which ability is this?",
+   o:["Rote learning ability","Grammatical sensitivity","Inductive learning ability","Phonetic coding ability"], a:2,
+   why:"Inductive learning ability: working out a pattern or rule from examples."},
+  {type:"mc", round:0, pts:1, q:"Lucía learns 40 Turkish words from flashcards in one evening and gets almost all of them right the next morning. Which ability is this?",
+   o:["Phonetic coding ability","Inductive learning ability","Grammatical sensitivity","Rote learning ability"], a:3,
+   why:"Rote learning ability: memorizing new items, especially vocabulary."},
+  {type:"mc", round:0, pts:1, q:"Your final exam in this course tests what you learned this semester. What kind of test is it?",
+   o:["An achievement test","An aptitude test","An intelligence test","The MLAT"], a:0,
+   why:"An achievement (proficiency) test measures how well you have done. An aptitude test like the MLAT predicts how well you would do."},
+  {type:"mc", round:0, pts:2, q:"Double points. You may test only ONE of the four MLAT abilities to predict who will learn fastest. Which one should you choose, according to Skehan (1989)?",
+   o:["Rote learning ability","Phonetic coding ability","Grammatical sensitivity","Inductive learning ability"], a:2,
+   why:"Grammatical sensitivity is the strongest MLAT predictor of success."},
+  {type:"mc", round:1, pts:1, q:"Omar is learning Kurdish so he can talk with his grandparents and feel part of his family's culture. What kind of motivation is this?",
+   o:["Instrumental","Integrative","Resultative","Achievement"], a:1,
+   why:"Integrative motivation: learning to connect with a culture and its people, or to belong."},
+  {type:"mc", round:1, pts:1, q:"Hana's company will promote her if she passes the Japanese Language Proficiency Test. That is her only reason for studying. What kind of motivation is this?",
+   o:["Integrative","Mixed","Instrumental","Attitude"], a:2,
+   why:"Instrumental motivation: learning a language to reach a practical goal, such as a job or a test."},
+  {type:"mc", round:1, pts:1, q:"Diego wants Portuguese for a job in Brazil, and also because he loves Brazilian music and wants to make friends there. What does his case show?",
+   o:["Most learners have mixed motives, so the two-way split is too simple","Instrumental motivation always wins","He is not really motivated","Integrative motivation only counts for immigrants"], a:0,
+   why:"Burstall et al. (1974): most learners have both kinds of reasons."},
+  {type:"mc", round:1, pts:1, q:"Aisha didn't care much about German. Then her teacher praised her pronunciation in front of the class, and now she practices every day. Which idea explains this?",
+   o:["Integrative motivation","Phonetic coding ability","Instrumental motivation","The Resultative Hypothesis"], a:3,
+   why:"The Resultative Hypothesis (Hermann, 1980): success can cause motivation, not only the other way round."},
+  {type:"mc", round:1, pts:1, q:"Ben liked Spanish, but this term the activities feel pointless and he thinks the teacher doesn't care about him. He has almost stopped studying. What changed?",
+   o:["His aptitude dropped","His attitudes toward the class and teacher","His rote learning ability","He became an instrumental learner"], a:1,
+   why:"Attitudes toward the teacher, class and tasks are closely tied to motivation."},
+  {type:"mc", round:1, pts:2, q:"Double points. A classmate says: \"My aptitude score was low, so I'll never learn a language.\" What would Carroll (1973) say?",
+   o:["That's right: low aptitude means you can't learn","Everyone can learn; aptitude is about how fast, not whether","Aptitude only matters for children","Only intelligence matters"], a:1,
+   why:"Carroll defined aptitude as the rate of learning. Everyone can learn; some learn faster."},
+  {type:"sprint-intro", round:2},
+  {type:"sprint-study", round:2},
+  {type:"sprint-recall", round:2},
+  {type:"wager", round:3, q:"Why did schools stop using aptitude tests to decide who could study a language, starting around 1970?",
+   o:["The tests took too long","The tests closed doors on learners who might have succeeded anyway","The tests only worked for adults","The tests only measured vocabulary"], a:1,
+   why:"Testing fell out of favor because it closed doors on learners who might succeed anyway. It came back in the 1990s with the idea of different aptitudes for different skills."},
+  {type:"end"},
+];
+const WORDS = [
+  ["گوڵ","gul","flower"],["مانگ","mang","moon"],["بەفر","befr","snow"],["چیا","çiya","mountain"],
+  ["باران","baran","rain"],["ئەستێرە","estêre","star"],["دەریا","derya","sea"],["هەور","hewr","cloud"],
+];
+const STUDY_SECONDS = 25, Q_SECONDS = 30;
+
+/* ------------------------------ state ------------------------------ */
+const store = {
+  get(k, f) { try { const v = localStorage.getItem("lps:" + k); return v == null ? f : JSON.parse(v); } catch (e) { return f; } },
+  set(k, v) { try { localStorage.setItem("lps:" + k, JSON.stringify(v)); } catch (e) {} },
+};
+let S = {i: 0, revealed: false, teams: [{n:"Team 1",p:0},{n:"Team 2",p:0},{n:"Team 3",p:0}], wager: {}, settled: {}};
+let timer = null, tLeft = 0, tMax = 0;
+
+function save() { store.set("state", S); }
+
+/* ------------------------------ render ------------------------------ */
+function renderTop() {
+  const c = CARDS[S.i];
+  $("rounds").innerHTML = ROUNDS.map((r, k) => `<span class="r${c.round === k ? " on" : ""}">${k + 1}. ${esc(r)}</span>`).join("");
+  $("count").textContent = `${S.i + 1} / ${CARDS.length}`;
+  $("prev").disabled = S.i === 0; $("next").disabled = S.i === CARDS.length - 1;
+}
+
+function renderBoard() {
+  const b = $("board");
+  b.style.setProperty("--n", S.teams.length);
+  b.innerHTML = S.teams.map((t, k) => `<div class="team" style="--c:${COLORS[k]}" data-k="${k}">
+    <span class="nm">${esc(t.n)}</span>
+    <span class="pts" aria-label="${esc(t.n)} points">${t.p}</span>
+    <span class="pm"><button type="button" data-d="-1" aria-label="Take a point from ${esc(t.n)}">−</button><button type="button" data-d="1" aria-label="Give ${esc(t.n)} a point">+</button></span>
+  </div>`).join("");
+}
+
+function timerHTML() { return `<div class="timer" id="timer" hidden><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#E0D7C2" stroke-width="3.5"/><circle id="tarc" cx="18" cy="18" r="15.5" fill="none" stroke="#C88A12" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="0"/></svg><span class="num" id="tnum"></span></div>`; }
+
+function optsHTML(c) {
+  return `<div class="opts">${c.o.map((o, k) => `<button type="button" class="opt${S.revealed ? (k === c.a ? " right" : " wrong") : ""}" data-o="${k}"><b>${"ABCD"[k]}</b><span>${esc(o)}</span></button>`).join("")}</div>`;
+}
+
+function renderStage() {
+  stopTimer();
+  const c = CARDS[S.i], st = $("stage");
+  if (c.type === "intro") {
+    st.innerHTML = `<div class="intro">
+      <div class="eyebrow"><span>LING 114 · Week 9 · Aptitude and motivation</span></div>
+      <h1>Learner Profiles Showdown</h1>
+      <p>Teams read each learner's story and decide what explains it: an aptitude, a kind of motivation, or an attitude.</p>
+      <div class="rules">
+        <div class="rule"><h3>Rounds 1–2</h3><p>Talk with your team for 30 seconds, then call out a letter. Right answer: 1 point. Double-point cards: 2.</p></div>
+        <div class="rule"><h3>Round 3</h3><p>Memory sprint: study 8 Sorani Kurdish words for ${STUDY_SECONDS} seconds, then write their meanings. 1 point per word.</p></div>
+        <div class="rule"><h3>Final wager</h3><p>Bet any number of your points on the last question. Right: you win the bet. Wrong: you lose it.</p></div>
+      </div>
+      <form class="setup" id="setup">
+        <label for="nteams">Teams<select id="nteams">${[2,3,4].map((n) => `<option${n === S.teams.length ? " selected" : ""}>${n}</option>`).join("")}</select></label>
+        ${S.teams.map((t, k) => `<label for="tn${k}">Team ${k + 1} name<input id="tn${k}" maxlength="24" value="${esc(t.n)}"></label>`).join("")}
+        <button class="btn primary" type="submit">Start the game</button>
+        <button class="btn" type="button" id="reset" style="color:var(--card-ink);background:#EFE8D6;border-color:#D9D1BD">Reset scores</button>
+      </form>
+    </div>`;
+    $("setup").addEventListener("submit", (e) => { e.preventDefault(); readNames(); go(1); });
+    $("nteams").addEventListener("change", (e) => { readNames(); const n = +e.target.value; while (S.teams.length < n) S.teams.push({n:`Team ${S.teams.length + 1}`, p:0}); S.teams.length = n; save(); renderBoard(); renderStage(); });
+    $("reset").addEventListener("click", () => { S.teams.forEach((t) => (t.p = 0)); S.wager = {}; S.settled = {}; save(); renderBoard(); });
+  } else if (c.type === "mc") {
+    st.innerHTML = `${timerHTML()}<div class="eyebrow"><span>Round ${c.round + 1} · ${esc(ROUNDS[c.round])}</span><span>${c.pts === 2 ? "Double points" : "1 point"}</span></div>
+      <h2 class="q">${esc(c.q)}</h2>
+      <div style="display:grid;gap:14px;align-content:start">${optsHTML(c)}${S.revealed ? `<div class="why">${esc(c.why)}</div>` : ""}</div>
+      <div class="ctrl" style="justify-content:flex-start">
+        <button class="btn primary" id="reveal">${S.revealed ? "Hide answer" : "Reveal answer (R)"}</button>
+        <button class="btn" id="tstart" style="color:var(--card-ink);background:#EFE8D6;border-color:#D9D1BD">Start ${Q_SECONDS}s timer (T)</button>
+      </div>`;
+    $("reveal").addEventListener("click", toggleReveal);
+    $("tstart").addEventListener("click", () => startTimer(Q_SECONDS));
+  } else if (c.type === "sprint-intro") {
+    st.innerHTML = `<div class="eyebrow"><span>Round 3 · Memory sprint</span><span>Rote learning, live</span></div>
+      <h2 class="q">Memory sprint: 8 Sorani Kurdish words</h2>
+      <div style="font-size:clamp(16px,1.6vw,21px);max-width:60ch;display:grid;gap:8px">
+        <p style="margin:0">Each team gets one sheet of paper. You will see 8 words for <b>${STUDY_SECONDS} seconds</b>. No writing while they are on screen.</p>
+        <p style="margin:0">Then the meanings disappear, and your team writes the English meaning of each word. One point per correct word.</p>
+        <p style="margin:0">This is the paired-associates task from the MLAT: it measures rote learning ability.</p>
+      </div>
+      <div class="ctrl" style="justify-content:flex-start"><button class="btn primary" id="go">Show the words</button></div>`;
+    $("go").addEventListener("click", () => go(S.i + 1));
+  } else if (c.type === "sprint-study") {
+    st.innerHTML = `${timerHTML()}<div class="eyebrow"><span>Round 3 · Memory sprint</span><span>Study now. No writing.</span></div>
+      <h2 class="q">Remember these</h2>
+      <div class="words">${WORDS.map(([ku, lat, en]) => `<div class="word"><span class="ku" lang="ckb" dir="rtl">${ku}</span><span class="lat">${lat}</span><span class="en">${en}</span></div>`).join("")}</div>
+      <div class="ctrl" style="justify-content:flex-start"><button class="btn primary" id="tstart">Start ${STUDY_SECONDS}s</button></div>`;
+    $("tstart").addEventListener("click", () => startTimer(STUDY_SECONDS, () => go(S.i + 1)));
+  } else if (c.type === "sprint-recall") {
+    st.innerHTML = `<div class="eyebrow"><span>Round 3 · Memory sprint</span><span>1 point per correct word</span></div>
+      <h2 class="q">${S.revealed ? "Answers: give each team its points below" : "Write the English meaning of each word"}</h2>
+      <div class="words">${shuffled().map(([ku, lat, en], k) => `<div class="word"><span class="no">${k + 1}</span><span class="ku" lang="ckb" dir="rtl">${ku}</span><span class="lat">${lat}</span><span class="en${S.revealed ? "" : " blank"}">${S.revealed ? en : "&nbsp;"}</span></div>`).join("")}</div>
+      <div class="ctrl" style="justify-content:flex-start"><button class="btn primary" id="reveal">${S.revealed ? "Hide answers" : "Reveal answers (R)"}</button></div>`;
+    $("reveal").addEventListener("click", toggleReveal);
+  } else if (c.type === "wager") {
+    st.innerHTML = `${timerHTML()}<div class="eyebrow"><span>Final wager</span><span>Bet before you see the options</span></div>
+      <h2 class="q">${esc(c.q)}</h2>
+      <div class="wagers">${S.teams.map((t, k) => `<div class="wager">
+          <span class="nm" style="color:${COLORS[k].replace("var(--t", "var(--t")}">${esc(t.n)}</span>
+          <label for="w${k}" style="font-size:13px">Bet (0–${Math.max(0, t.p)})<input id="w${k}" type="number" min="0" max="${Math.max(0, t.p)}" value="${S.wager[k] ?? 0}"></label>
+          ${S.revealed ? `<div class="acts"><button type="button" class="ok" data-w="${k}" data-r="1"${S.settled[k] ? " disabled" : ""}>Right</button><button type="button" class="no" data-w="${k}" data-r="-1"${S.settled[k] ? " disabled" : ""}>Wrong</button></div>` : ""}
+        </div>`).join("")}</div>
+      ${S.showOpts ? `<div style="display:grid;gap:14px">${optsHTML(c)}${S.revealed ? `<div class="why">${esc(c.why)}</div>` : ""}</div>` : ""}
+      <div class="ctrl" style="justify-content:flex-start">
+        ${S.showOpts ? `<button class="btn primary" id="reveal">${S.revealed ? "Hide answer" : "Reveal answer (R)"}</button><button class="btn" id="tstart" style="color:var(--card-ink);background:#EFE8D6;border-color:#D9D1BD">Start ${Q_SECONDS}s timer (T)</button>`
+                   : `<button class="btn primary" id="lock">Lock bets and show options</button>`}
+      </div>`;
+    st.querySelectorAll(".wager input").forEach((inp) => inp.addEventListener("change", () => {
+      const k = +inp.id.slice(1); const v = Math.max(0, Math.min(Math.max(0, S.teams[k].p), Math.floor(+inp.value || 0)));
+      inp.value = v; S.wager[k] = v; save();
+    }));
+    if ($("lock")) $("lock").addEventListener("click", () => { S.showOpts = true; save(); renderStage(); });
+    if ($("reveal")) $("reveal").addEventListener("click", toggleReveal);
+    if ($("tstart")) $("tstart").addEventListener("click", () => startTimer(Q_SECONDS));
+    st.querySelectorAll("[data-w]").forEach((b) => b.addEventListener("click", () => {
+      const k = +b.dataset.w; if (S.settled[k]) return;
+      S.settled[k] = true; addPoints(k, (+b.dataset.r) * (S.wager[k] || 0)); save(); renderStage();
+    }));
+  } else if (c.type === "end") {
+    const order = S.teams.map((t, k) => ({...t, k})).sort((a, b) => b.p - a.p);
+    st.innerHTML = `<div class="eyebrow"><span>Final scores</span></div>
+      <h2 class="q">${order[0].p === (order[1] || {p: -1}).p ? "It's a tie at the top!" : `${esc(order[0].n)} wins!`}</h2>
+      <div class="podium">${order.map((t, r) => `<div class="pod${r === 0 ? " first" : ""}"><span>${r + 1}. ${esc(t.n)}</span><span class="pts" style="color:${COLORS[t.k]}">${t.p}</span></div>`).join("")}</div>
+      <p style="margin:0;font-size:clamp(15px,1.5vw,20px);max-width:62ch">Wrap-up: which ability did the memory sprint test? And did winning a round change how hard your team tried? That's the Resultative Hypothesis in action.</p>`;
+  }
+  renderTop();
+}
+
+let order = null;
+function shuffled() {
+  if (!order) { order = WORDS.map((w, k) => k); for (let k = order.length - 1; k > 0; k--) { const j = (k * 7 + 3) % (k + 1); [order[k], order[j]] = [order[j], order[k]]; } }
+  return order.map((k) => WORDS[k]);
+}
+
+/* ------------------------------ actions ------------------------------ */
+function readNames() { S.teams.forEach((t, k) => { const el = $("tn" + k); if (el) t.n = el.value.trim() || `Team ${k + 1}`; }); save(); renderBoard(); }
+function go(i) { if (i < 0 || i >= CARDS.length) return; S.i = i; S.revealed = false; S.showOpts = false; save(); renderStage(); }
+function toggleReveal() { S.revealed = !S.revealed; save(); renderStage(); }
+function addPoints(k, d) {
+  if (!S.teams[k] || !d) return;
+  S.teams[k].p += d; save(); renderBoard();
+  const el = $("board").querySelector(`[data-k="${k}"]`); if (el) { el.classList.add("bump"); setTimeout(() => el.classList.remove("bump"), 400); }
+}
+function startTimer(sec, onDone) {
+  stopTimer();
+  const box = $("timer"); if (!box) return;
+  box.hidden = false; box.classList.remove("done");
+  tMax = sec; tLeft = sec; paintTimer();
+  timer = setInterval(() => {
+    tLeft--; paintTimer();
+    if (tLeft <= 0) { stopTimer(); box.classList.add("done"); if (onDone) onDone(); }
+  }, 1000);
+}
+function paintTimer() { const n = $("tnum"), a = $("tarc"); if (!n || !a) return; n.textContent = Math.max(0, tLeft); a.setAttribute("stroke-dashoffset", String(97.4 * (1 - Math.max(0, tLeft) / tMax))); }
+function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+
+$("prev").addEventListener("click", () => go(S.i - 1));
+$("next").addEventListener("click", () => go(S.i + 1));
+$("board").addEventListener("click", (e) => { const b = e.target.closest("button[data-d]"); if (!b) return; addPoints(+b.closest(".team").dataset.k, +b.dataset.d); });
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest("input,select,textarea")) return;
+  const c = CARDS[S.i];
+  if (e.key === "ArrowRight") go(S.i + 1);
+  else if (e.key === "ArrowLeft") go(S.i - 1);
+  else if ((e.key === "r" || e.key === "R") && (c.type === "mc" || c.type === "sprint-recall" || (c.type === "wager" && S.showOpts))) toggleReveal();
+  else if ((e.key === "t" || e.key === "T") && (c.type === "mc" || (c.type === "wager" && S.showOpts))) startTimer(Q_SECONDS);
+  else if (/^[1-4]$/.test(e.key)) addPoints(+e.key - 1, 1);
+});
+
+/* ------------------------------ boot ------------------------------ */
+function start(data) {
+  const saved = (data && data.S) || store.get("state", null);
+  if (saved && Array.isArray(saved.teams) && saved.teams.length >= 2) S = Object.assign(S, saved);
+  if (S.i >= CARDS.length) S.i = 0;
+  renderBoard(); renderStage();
+}
+try { window.claude?.hot?.snapshot?.(() => ({S})); } catch (e) {}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
+
+</body>
+</html>
