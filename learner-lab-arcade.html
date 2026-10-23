@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Learner Lab Arcade</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=Noto+Naskh+Arabic:wght@500;700&display=swap">
+<style>
+/* Layout: one group per device. A level ladder on top, one question card, a score/timer bar.
+   One deliberate look (ink-blue stage, cream cards) so it reads the same on every screen in the room. */
+:root{
+  --stage:#1B2440; --stage-2:#232F52; --card:#F6F2E8; --card-ink:#18203A; --chalk:#EEF0F7; --muted:#9AA6C8;
+  --saffron:#F2B33D; --good:#2FA36B; --bad:#D9534F; --line:rgba(238,240,247,.16); --cream-2:#EFE8D6; --edge:#D9D1BD;
+  --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --ku:"Noto Naskh Arabic", "Atkinson Hyperlegible", serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;background:var(--stage);color:var(--chalk)}
+body{margin:0;font-family:var(--body);font-size:16px;line-height:1.45;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-block:12px}
+.app{max-width:980px;min-height:100%;margin:0 auto;display:grid;grid-template-rows:auto auto 1fr;gap:12px}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:2px}
+
+.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.brand{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.01em}
+.brand span{color:var(--saffron)}
+.who{font-size:14px;color:var(--muted)}
+.who b{color:var(--chalk)}
+
+/* level ladder */
+.ladder{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.rung{border:1px solid var(--line);border-radius:10px;padding:6px 8px;display:grid;gap:0;min-width:0}
+.rung .lv{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rung .pt{font-family:var(--display);font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
+.rung.on{background:var(--saffron);border-color:var(--saffron);color:var(--card-ink)}
+.rung.on .lv{color:var(--card-ink)}
+.rung.done{opacity:.55}
+@media (max-width:520px){.rung .lv{display:none}}
+
+/* status bar */
+.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.score{font-family:var(--display);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums;color:var(--saffron)}
+.score small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted);margin-inline-start:6px}
+.qcount{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tbar{flex:1;min-width:120px;height:12px;border-radius:999px;background:var(--stage-2);overflow:hidden;border:1px solid var(--line)}
+.tbar i{display:block;height:100%;width:100%;background:var(--saffron);transform-origin:left;transition:transform .25s linear}
+.tbar.low i{background:var(--bad)}
+.tnum{font-family:var(--display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums;min-width:2.2em;text-align:end}
+
+/* card */
+.card{background:var(--card);color:var(--card-ink);border-radius:18px;padding:clamp(16px,3vw,34px);display:grid;gap:16px;align-content:start;box-shadow:0 18px 50px rgba(0,0,0,.35);min-width:0}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:#7A5A12;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.q{font-family:var(--display);font-weight:600;font-size:clamp(20px,2.7vw,32px);line-height:1.2;text-wrap:balance;margin:0}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;gap:12px;align-items:center;text-align:start;border:2px solid var(--edge);background:#FFFDF7;border-radius:12px;padding:12px 14px;font-size:clamp(16px,1.6vw,20px);cursor:pointer;min-width:0;color:var(--card-ink)}
+.opt:hover:not(:disabled){border-color:var(--card-ink)}
+.opt b{display:inline-grid;place-items:center;width:1.9em;height:1.9em;border-radius:50%;background:var(--card-ink);color:var(--card);font-size:.8em;flex:none}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--good);background:#E3F4EA}.opt.right b{background:var(--good)}
+.opt.picked-wrong{border-color:var(--bad);background:#F9E3E2}.opt.picked-wrong b{background:var(--bad)}
+.opt.dim{opacity:.4}
+.fb{border-radius:10px;padding:12px 14px;display:grid;gap:4px;font-size:clamp(15px,1.4vw,18px)}
+.fb.ok{background:#E3F4EA;border-inline-start:5px solid var(--good)}
+.fb.no{background:#F9E3E2;border-inline-start:5px solid var(--bad)}
+.fb strong{font-family:var(--display);font-size:1.15em}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:0;border-radius:12px;padding:12px 20px;cursor:pointer;font-weight:700;background:var(--card-ink);color:var(--card);font-size:17px}
+.btn.gold{background:var(--saffron);color:var(--card-ink)}
+.btn:disabled{opacity:.4;cursor:default}
+.ghost{background:transparent;border:2px solid var(--edge);color:var(--card-ink)}
+
+/* start / level / end */
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(32px,5vw,58px);line-height:1;margin:0 0 8px;letter-spacing:-.02em}
+.hero p{margin:0;max-width:60ch;font-size:clamp(16px,1.5vw,19px)}
+.levels{display:grid;gap:6px;margin:4px 0}
+.lrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:baseline;background:var(--cream-2);border-radius:10px;padding:8px 12px}
+.lrow .n{font-family:var(--display);font-weight:800}
+.lrow .p,.lrow .t{font-variant-numeric:tabular-nums;font-size:14px}
+.lrow .p{font-weight:700}
+@media (max-width:520px){.lrow{grid-template-columns:auto 1fr auto}.lrow .t{display:none}}
+.field{display:grid;gap:4px;font-weight:700;font-size:14px;max-width:22em}
+.field input{border:2px solid var(--edge);background:#FFFDF7;color:var(--card-ink);border-radius:10px;padding:10px 12px;font-size:18px}
+.err{color:var(--bad);font-weight:700;min-height:1.2em;margin:0}
+.big{font-family:var(--display);font-weight:800;font-size:clamp(44px,8vw,88px);line-height:1;font-variant-numeric:tabular-nums}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:var(--cream-2);border-radius:10px;padding:8px 12px;font-size:15px}
+.stat b{font-family:var(--display);font-size:20px;display:block;font-variant-numeric:tabular-nums}
+.review{display:grid;gap:8px}
+.rv{background:#FFFDF7;border:1px solid var(--edge);border-radius:10px;padding:10px 12px;font-size:15px}
+.rv .a{color:var(--good);font-weight:700}
+.rv{display:grid;gap:4px;border-inline-start:5px solid var(--edge)}
+.rv.rv-ok{border-inline-start-color:var(--good)}.rv.rv-no{border-inline-start-color:var(--bad)}
+.rvh{display:flex;gap:10px;align-items:baseline;font-size:13px;font-weight:700}
+.rvn{font-family:var(--display);font-size:16px}
+.rv-ok .rvm{color:var(--good)}.rv-no .rvm{color:var(--bad)}
+.rvp{margin-inline-start:auto;font-variant-numeric:tabular-nums;color:#5A5F73}
+.rvq{font-weight:700}
+.rvy{color:var(--bad)}
+.rva b{color:var(--good)}
+.rvw{color:#4A4F63}
+.games{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.games{grid-template-columns:1fr}}
+.game{display:grid;gap:4px;text-align:start;border:2px solid var(--edge);background:#FFFDF7;color:var(--card-ink);border-radius:14px;padding:14px 16px;cursor:pointer;min-width:0}
+.game:hover{border-color:var(--card-ink)}
+.game .gn{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#7A5A12}
+.game .gt{font-family:var(--display);font-weight:800;font-size:22px}
+.game .gb{font-size:15px;color:#4A4F63}
+.game .gs{font-weight:700;margin-top:4px}
+
+/* memory */
+.words{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.words{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.word{border:2px solid var(--edge);background:#FFFDF7;border-radius:14px;padding:12px;display:grid;gap:2px;text-align:center;min-width:0}
+.ku{font-family:var(--ku);font-size:clamp(26px,3vw,38px);line-height:1.35}
+.lat{font-size:15px;color:#5A5F73}
+.en{font-family:var(--display);font-weight:600;font-size:clamp(18px,1.8vw,24px)}
+.qku{font-family:var(--ku);font-size:clamp(40px,6vw,64px);line-height:1.3;text-align:center}
+.pop{animation:pop .4s ease}
+@keyframes pop{50%{transform:scale(1.15)}}
+@media (prefers-reduced-motion:reduce){.pop{animation:none}.tbar i{transition:none}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">Learner Lab <span>Arcade</span></div>
+    <div class="who" id="who"></div>
+  </header>
+  <nav class="ladder" id="ladder" aria-label="Levels"></nav>
+  <main id="main" style="display:grid;gap:12px;align-content:start"></main>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ------------------------------ content ------------------------------ */
+const LEVELS = [
+  {name:"Warm-up", pts:100, sec:20, about:"Key terms from the handout."},
+  {name:"Scenarios", pts:200, sec:30, about:"Read a learner's story. Which ability or motivation is it?"},
+  {name:"Memory sprint", pts:300, sec:12, about:"Study 8 Sorani Kurdish words for 25 seconds, then pick their meanings. This is the MLAT's rote learning task."},
+  {name:"Tricky cases", pts:400, sec:35, about:"Harder scenarios. Read every option carefully."},
+  {name:"Final", pts:600, sec:45, about:"The three hardest questions."},
+];
+const GAMES = [
+  {id:"a", name:"Learner Profiles", blurb:"The classic set, with nature words in the memory sprint.",
+   q:[
+  // Level 1
+  {lv:0, q:"How did Carroll (1973) define language aptitude?", o:["The rate at which a person learns a language","Whether a person can learn a language at all","How many languages a person already speaks","A person's general intelligence"], a:0,
+   why:"Aptitude is the rate of learning: everyone can learn, but some learn faster."},
+  {lv:0, q:"What does MLAT stand for?", o:["Modern Language Aptitude Test","Multiple Language Achievement Test","Memory and Learning Ability Test","Modern Linguistics Assessment Tool"], a:0,
+   why:"The Modern Language Aptitude Test (Carroll & Sapon, 1959) has five sub-tests."},
+  {lv:0, q:"Learning a language to get a job or pass a test is…", o:["integrative motivation","instrumental motivation","the Resultative Hypothesis","grammatical sensitivity"], a:1,
+   why:"Instrumental motivation means learning for a practical goal (Lukmani, 1972)."},
+  {lv:0, q:"Which ability is described as \"a good ear\": hearing new sounds, linking them to symbols and remembering them?", o:["Rote learning ability","Inductive learning ability","Phonetic coding ability","Grammatical sensitivity"], a:2,
+   why:"That is phonetic coding ability."},
+  // Level 2
+  {lv:1, q:"Tom sees un-happy, un-kind and un-safe for the first time, then correctly makes up un-tidy on his own. Which ability is this?", o:["Rote learning ability","Grammatical sensitivity","Inductive learning ability","Phonetic coding ability"], a:2,
+   why:"Inductive learning ability: working out a rule from examples."},
+  {lv:1, q:"Lucía learns 40 Turkish words from flashcards in one evening and remembers almost all of them the next morning. Which ability is this?", o:["Phonetic coding ability","Rote learning ability","Inductive learning ability","Grammatical sensitivity"], a:1,
+   why:"Rote learning ability: memorizing new items, especially vocabulary."},
+  {lv:1, q:"Priya has never heard the term \"relative clause,\" but she sees that in \"The cat that the dog chased ran away,\" the part \"that the dog chased\" tells us which cat. Which ability is this?", o:["General intelligence","Phonetic coding ability","Rote learning ability","Grammatical sensitivity"], a:3,
+   why:"Grammatical sensitivity: seeing what job words do in a sentence, without grammar terms."},
+  {lv:1, q:"Omar is learning Kurdish so he can talk with his grandparents and feel part of his family's culture. What kind of motivation is this?", o:["Integrative","Instrumental","Resultative","Achievement"], a:0,
+   why:"Integrative motivation: connecting with a culture and its people (Gardner & Lambert, 1972)."},
+  // Level 4
+  {lv:3, q:"Aisha didn't care about German. Then her teacher praised her pronunciation in front of the class, and now she practices every day. Which idea explains this best?", o:["Integrative motivation","Phonetic coding ability","The Resultative Hypothesis","Instrumental motivation"], a:2,
+   why:"The Resultative Hypothesis (Hermann, 1980): success can cause motivation, not only the other way round."},
+  {lv:3, q:"Diego wants Portuguese for a job in Brazil, and also because he loves Brazilian music and wants friends there. What does his case show?", o:["Instrumental motivation always wins","Most learners have mixed motives, so the two-way split is too simple","He has no real motivation","Integrative motivation only applies to immigrants"], a:1,
+   why:"Burstall et al. (1974): most learners have both kinds of reasons."},
+  {lv:3, q:"Which of these is an ACHIEVEMENT test rather than an aptitude test?", o:["A test of how fast you learn an invented language","The MLAT's Paired Associates task","A test of how well you hear and spell new sounds","Your end-of-semester Spanish exam"], a:3,
+   why:"An achievement test measures how well you have done. The other three predict how well you would do."},
+  {lv:3, q:"Christopher has serious cognitive difficulties, yet he learned 15 to 20 languages. What does his case suggest?", o:["Only highly intelligent people can learn many languages","Language aptitude can be separate from general intelligence","Aptitude tests cannot measure language talent","Motivation matters more than aptitude"], a:1,
+   why:"A talent for languages can exist apart from general mental ability."},
+  {lv:3, q:"Two very intelligent students take different Spanish classes: one explains grammar rules, the other uses audiolingual drills with little explanation. Where does their intelligence help most?", o:["In the drill class","Equally in both","In neither","In the rule-explaining class"], a:3,
+   why:"Intelligent learners did better in rule-based classes, but not in audiolingual ones."},
+  // Level 5
+  {lv:4, q:"You may test only ONE MLAT ability to predict who will learn fastest. According to Skehan (1989), which should you choose?", o:["Rote learning ability","Phonetic coding ability","Inductive learning ability","Grammatical sensitivity"], a:3,
+   why:"Grammatical sensitivity is the strongest MLAT predictor."},
+  {lv:4, q:"A classmate says: \"My aptitude score was low, so I'll never learn a language.\" Which response fits Carroll's definition?", o:["Everyone can learn; aptitude is about how fast, not whether","That's right: low aptitude means you can't learn","Aptitude only matters for children","Only intelligence matters"], a:0,
+   why:"Aptitude is the rate of learning, not a limit on it."},
+  {lv:4, q:"Why did aptitude testing fall out of favor after 1970?", o:["The tests took too long to give","It closed doors on learners who might have succeeded anyway","The tests only worked with adults","The tests only measured vocabulary"], a:1,
+   why:"It revived in the 1990s with the idea of different aptitudes for different skills and stages."},
+],
+   words:[
+  ["گوڵ","gul","flower"],["مانگ","mang","moon"],["بەفر","befr","snow"],["چیا","çiya","mountain"],
+  ["باران","baran","rain"],["ئەستێرە","estêre","star"],["دەریا","derya","sea"],["هەور","hewr","cloud"],
+],
+   ask:[1, 5, 3, 7, 2]},
+  {id:"b", name:"Aptitude Arena", blurb:"New scenarios, with body and nature words in the memory sprint.",
+   q:[
+  // Level 1
+  {lv:0, q:"Which kind of test predicts how well someone WOULD do in learning a new language?", o:["An aptitude test","An achievement test","A final exam","A proficiency interview"], a:0,
+   why:"Aptitude tests predict; achievement (proficiency) tests measure what you have already learned."},
+  {lv:0, q:"Who created the Modern Language Aptitude Test (MLAT)?", o:["Gardner and Lambert","Carroll and Sapon","Skehan","Burstall and colleagues"], a:1,
+   why:"Carroll and Sapon published the MLAT in 1959."},
+  {lv:0, q:"Learning a language so you can belong to a community and connect with its people is…", o:["instrumental motivation","the Resultative Hypothesis","integrative motivation","rote learning"], a:2,
+   why:"That is integrative motivation (Gardner & Lambert, 1972)."},
+  {lv:0, q:"Which MLAT ability is about memorizing new items, such as vocabulary, quickly?", o:["Grammatical sensitivity","Inductive learning ability","Phonetic coding ability","Rote learning ability"], a:3,
+   why:"Rote learning ability: memorizing new items, especially words."},
+  // Level 2
+  {lv:1, q:"Marta hears the difference between Hindi \"kh\" and plain \"k\" right away, writes them with different letters, and still remembers them a week later. Which ability is this?", o:["Phonetic coding ability","Rote learning ability","Grammatical sensitivity","General intelligence"], a:0,
+   why:"Phonetic coding ability: hearing new sounds, linking them to symbols, and remembering them."},
+  {lv:1, q:"Sam sees gato/gatos, perro/perros and casa/casas in Spanish. Without being told, he turns libro into libros. Which ability is this?", o:["Phonetic coding ability","Inductive learning ability","Rote learning ability","Instrumental motivation"], a:1,
+   why:"Inductive learning ability: working out a rule from examples."},
+  {lv:1, q:"Jin can't name the grammar term, but he notices that \"quickly\" in \"She ran quickly\" does the same job as \"carefully\" in \"He drove carefully.\" Which ability is this?", o:["Rote learning ability","Inductive learning ability","Grammatical sensitivity","Phonetic coding ability"], a:2,
+   why:"Grammatical sensitivity: noticing what job words do in a sentence."},
+  {lv:1, q:"Fatima is studying English only to pass the IELTS exam so she can enter nursing school in Canada. What kind of motivation is this?", o:["Integrative","Mixed","Resultative","Instrumental"], a:3,
+   why:"Instrumental motivation: learning to reach a practical goal."},
+  // Level 4
+  {lv:3, q:"Leo had a low MLAT score but studied Italian every day and reached an advanced level after two years. A classmate with a high score got there in one year. Which statement fits Carroll's view?", o:["Aptitude affected how fast they learned, not whether they could","Leo's test must have been wrong","Aptitude decides how far each learner can go","Motivation has no effect on learning"], a:0,
+   why:"Carroll: aptitude is the rate of learning. Everyone can learn, some faster."},
+  {lv:3, q:"A philosophy graduate student does very well in a Latin class that explains grammar rules, but only average in a drill-based audiolingual Spanish class. What best explains this?", o:["She has low language aptitude","General intelligence helps mostly in methods that explain rules","She has only instrumental motivation","Audiolingual classes need grammatical sensitivity"], a:1,
+   why:"Intelligence mainly helps in rule-based methods, not in audiolingual drills."},
+  {lv:3, q:"Nadia started Arabic for her job. After making friends at a community center, she now also studies to talk with them. What does her case show?", o:["The Resultative Hypothesis","Low aptitude","Learners often have mixed motives, so the two-way split is too simple","Instrumental motivation disappears over time"], a:2,
+   why:"Burstall et al. (1974): most learners have both kinds of reasons, and they can change."},
+  {lv:3, q:"Carlos disliked his French teacher and skipped homework. A new teacher arrived with tasks he enjoys, and now he studies much more. Which concept explains the change?", o:["His aptitude improved","His rote learning got faster","He became an integrative learner","His attitudes toward the teacher and tasks raised his motivation"], a:3,
+   why:"Attitudes toward the teacher, class and tasks are closely tied to motivation."},
+  {lv:3, q:"After scoring 95% on her first vocabulary quiz, Mei felt proud and doubled her study time. Which idea explains this best?", o:["The Resultative Hypothesis","Integrative motivation","Phonetic coding ability","Inductive learning ability"], a:0,
+   why:"Hermann (1980): success can cause motivation, not only the other way round."},
+  // Level 5
+  {lv:4, q:"Skehan's 1989 review asked which MLAT component predicts language-learning success best. What did he find?", o:["Rote learning ability","Grammatical sensitivity","Phonetic coding ability","Inductive learning ability"], a:1,
+   why:"Grammatical sensitivity was the strongest predictor."},
+  {lv:4, q:"Aptitude research came back in the 1990s. Which new idea came with it?", o:["Aptitude tests should decide who may study languages","Aptitude is the same as intelligence","Motivation does not matter","There are different aptitudes for different skills and stages of learning"], a:3,
+   why:"After falling out of favor around 1970 for closing doors on learners, aptitude research returned with this idea."},
+  {lv:4, q:"Which pair is matched correctly?", o:["MLAT: measures what you have learned · Final exam: predicts how you will do","MLAT: predicts how you would do · Final exam: measures how you have done","Both predict how you would do","Both measure what you have learned"], a:1,
+   why:"The MLAT is an aptitude test (predicts); a final exam is an achievement test (measures)."},
+],
+   words:[
+  ["ئاگر","agir","fire"],["بەرد","berd","stone"],["گوێ","gwê","ear"],["دەست","dest","hand"],
+  ["چاو","çaw","eye"],["ماسی","masî","fish"],["کانی","kanî","spring (of water)"],["باڵندە","bałinde","bird"],
+],
+   ask:[2, 7, 0, 5, 4]},
+  {id:"c", name:"Motivation Match", blurb:"New learners, new stories, and food words in the memory sprint.",
+   q:[
+    {lv:0, q:"According to the handout, what are individual differences?", o:["Learner variables that explain why some people learn languages faster than others","Differences between languages that make some harder to learn","Differences between teaching methods","Differences between aptitude tests"], a:0,
+     why:"Individual differences are learner variables: cognitive, affective or personality-based."},
+    {lv:0, q:"Which researchers introduced the distinction between integrative and instrumental motivation?", o:["Carroll and Sapon","Gardner and Lambert","Skehan","Hermann"], a:1,
+     why:"Gardner and Lambert (1972)."},
+    {lv:0, q:"Working out patterns and rules from examples is called…", o:["rote learning ability","phonetic coding ability","inductive learning ability","grammatical sensitivity"], a:2,
+     why:"Inductive learning ability: working out a rule from examples, such as how numbers are built in a new language."},
+    {lv:0, q:"What does the Resultative Hypothesis claim?", o:["Motivation always comes before success","Aptitude decides results","Results depend only on the teacher","Success can cause motivation"], a:3,
+     why:"Hermann (1980): doing well can make you want to study more."},
+    {lv:1, q:"Ana is learning Korean so she can follow her K-drama fan community and make friends at fan meetups. What kind of motivation is this?", o:["Integrative","Instrumental","Resultative","Achievement"], a:0,
+     why:"Integrative motivation: connecting with a culture and its people, or belonging to a community."},
+    {lv:1, q:"Kwame memorized all 46 Japanese hiragana characters in one weekend using flashcards. Which ability does this show most clearly?", o:["Grammatical sensitivity","Rote learning ability","Inductive learning ability","General intelligence"], a:1,
+     why:"Rote learning ability: memorizing many new items quickly."},
+    {lv:1, q:"In a listening task, Elif hears made-up words like \"tak\" and \"taak\" and matches each one to the right spelling. Which ability is this?", o:["Rote learning ability","Grammatical sensitivity","Phonetic coding ability","Inductive learning ability"], a:2,
+     why:"Phonetic coding ability: hearing sounds and linking them to symbols."},
+    {lv:1, q:"Raj is learning Mandarin because his company is opening an office in Shanghai and he wants the manager position there. What kind of motivation is this?", o:["Integrative","Mixed","Resultative","Instrumental"], a:3,
+     why:"Instrumental motivation: learning for a practical goal like a job."},
+    {lv:3, q:"Yusuf barely participated in English class. After the teacher switched to group projects he enjoys, he started studying every night. Which concept explains this best?", o:["His attitudes toward the class tasks changed his motivation","His aptitude increased","He became an instrumental learner","His phonetic coding improved"], a:0,
+     why:"Attitudes toward the class and its tasks are closely tied to motivation."},
+    {lv:3, q:"Which example shows general intelligence helping, rather than language aptitude?", o:["Memorizing 30 new words in ten minutes","Quickly understanding a long explanation of the subjunctive rules","Hearing the difference between two tones","Wanting to make friends in a new country"], a:1,
+     why:"Intelligence mainly helps with methods that rely on explaining and learning rules."},
+    {lv:3, q:"Sara is learning Italian to win a scholarship and to talk with her Italian grandmother. Which statement fits best?", o:["She is only instrumentally motivated","She is only integratively motivated","Like most learners, she has mixed motives","She has low aptitude"], a:2,
+     why:"Burstall et al. (1974): most learners have both kinds of reasons."},
+    {lv:3, q:"Lena failed her first Arabic quiz, felt discouraged, and started skipping class. Which idea describes this pattern?", o:["Integrative motivation","Phonetic coding ability","Grammatical sensitivity","The Resultative Hypothesis, working in reverse"], a:3,
+     why:"If success can raise motivation, failure can lower it. Results affect motivation."},
+    {lv:3, q:"Which statement about aptitude is FALSE?", o:["Aptitude is separate from general intelligence","Aptitude predicts how fast someone learns","People with low aptitude cannot learn a language","The MLAT has five sub-tests"], a:2,
+     why:"Carroll: everyone can learn; aptitude affects the rate."},
+    {lv:4, q:"A researcher in the 1990s designs separate aptitude tests for listening, speaking and grammar. Which idea is she following?", o:["There are different aptitudes for different skills and stages","Aptitude is the same as intelligence","Aptitude tests should decide who may learn","Motivation does not matter"], a:0,
+     why:"Aptitude research revived in the 1990s with this idea."},
+    {lv:4, q:"The MLAT task where you find the word that does the same job as a capitalized word is called… and it measures…", o:["Spelling Clues; phonetic coding ability","Words in Sentences; grammatical sensitivity","Paired Associates; rote learning ability","Words in Sentences; inductive learning ability"], a:1,
+     why:"Words in Sentences measures grammatical sensitivity, the strongest MLAT predictor (Skehan, 1989)."},
+    {lv:4, q:"Why did Burstall et al. (1974) criticize the integrative/instrumental distinction?", o:["Integrative motivation does not exist","Instrumental learners always fail","Motivation cannot be measured","Most learners have both kinds of reasons, so the split is too simple"], a:3,
+     why:"Real learners usually mix practical and social reasons."},
+   ],
+   words:[["هەنار","henar","pomegranate"],["ترێ","trê","grape"],["پەنیر","penîr","cheese"],["چا","ça","tea"],
+          ["گۆشت","goşt","meat"],["هێلکە","hêlke","egg"],["برنج","brinc","rice"],["خوێ","xwê","salt"]],
+   ask:[0, 2, 5, 7, 4]},
+  {id:"d", name:"Language Lab Challenge", blurb:"The hardest mix, with animal words in the memory sprint.",
+   q:[
+    {lv:0, q:"An achievement test measures…", o:["how fast you will learn","how well you have done","how intelligent you are","how motivated you are"], a:1,
+     why:"Achievement (proficiency) tests measure what you have learned; aptitude tests predict."},
+    {lv:0, q:"Motivation is which type of individual difference?", o:["Cognitive","Personality-based","Affective","Physical"], a:2,
+     why:"Motivation and attitudes are affective differences; intelligence and aptitude are cognitive."},
+    {lv:0, q:"Who defined language aptitude as the rate at which a person learns?", o:["Carroll (1973)","Gardner and Lambert (1972)","Hermann (1980)","Lukmani (1972)"], a:0,
+     why:"Carroll (1973)."},
+    {lv:0, q:"Lukmani (1972) studied learners of English for jobs and university. Which motivation is this?", o:["Integrative","Resultative","Mixed","Instrumental"], a:3,
+     why:"Learning for a job, a test or university study is instrumental motivation."},
+    {lv:1, q:"Hiro sees Swahili ninasoma \"I read,\" unasoma \"you read,\" ninaandika \"I write.\" He correctly produces unaandika \"you write.\" Which ability is this?", o:["Rote learning ability","Phonetic coding ability","Inductive learning ability","Grammatical sensitivity"], a:2,
+     why:"Inductive learning ability: working out the pattern from examples."},
+    {lv:1, q:"Grace sees the made-up spelling \"fone\" and immediately recognizes the word \"phone,\" like recognizing that \"luv\" spells love. Which ability is this?", o:["Phonetic coding ability","Rote learning ability","Grammatical sensitivity","Inductive learning ability"], a:0,
+     why:"Phonetic coding: linking sounds and spellings. The MLAT's Spelling Clues task works this way."},
+    {lv:1, q:"Pablo is learning French so he can talk with his partner's family at dinner and feel included. What kind of motivation is this?", o:["Instrumental","Integrative","Resultative","Achievement"], a:1,
+     why:"Integrative motivation: feeling part of a community and its people."},
+    {lv:1, q:"Dana learns 15 new Hebrew words every morning on the bus and remembers all of them that night. Which ability is this?", o:["Grammatical sensitivity","Inductive learning ability","Phonetic coding ability","Rote learning ability"], a:3,
+     why:"Rote learning ability: memorizing new vocabulary."},
+    {lv:3, q:"Mateo says: \"I keep studying Japanese because the class activities are fun and the teacher is kind.\" Which concept is he describing?", o:["Attitudes toward the class and teacher","Language aptitude","Instrumental motivation","Inductive learning ability"], a:0,
+     why:"Attitudes toward the teacher, class and tasks are tied to motivation."},
+    {lv:3, q:"Ali's general intelligence is average, but he picks up new languages remarkably quickly. What does this show?", o:["Aptitude is the same as intelligence","Language aptitude can be separate from general intelligence","Intelligence predicts language success best","He must have integrative motivation"], a:1,
+     why:"Like Christopher, the savant who learned 15–20 languages: aptitude is a talent of its own."},
+    {lv:3, q:"After passing her first German exam, Ingrid felt capable and signed up for the next level right away. Which idea does this support?", o:["Integrative motivation","Grammatical sensitivity","The Resultative Hypothesis","Instrumental motivation"], a:2,
+     why:"Success raised her motivation (Hermann, 1980)."},
+    {lv:3, q:"Words in Sentences: in \"The DOG barked loudly,\" which part of \"My old neighbor sold the house\" does the same job as DOG?", o:["sold","the house","old","My old neighbor"], a:3,
+     why:"DOG is the subject; \"My old neighbor\" is the subject of the second sentence. This tests grammatical sensitivity."},
+    {lv:3, q:"Which statement shows mixed motivation?", o:["\"I learn Spanish for my career and because I love Latin American culture.\"","\"I learn Spanish only to pass my exam.\"","\"I learn Spanish only to make Mexican friends.\"","\"I don't know why I learn Spanish.\""], a:0,
+     why:"It combines a practical goal (career) with a social one (culture)."},
+    {lv:4, q:"Which description of the MLAT is accurate?", o:["An achievement test of what students learned in class","A test of general intelligence","An aptitude test with five sub-tests (Carroll & Sapon, 1959) that predicts how quickly someone will learn","A motivation questionnaire"], a:2,
+     why:"The MLAT is an aptitude test: it predicts rather than measures what was learned."},
+    {lv:4, q:"Which pair matches each motivation with an example from the handout?", o:["Integrative: learning English for a job · Instrumental: learning Mandarin to feel at home","Integrative: learning Mandarin to feel at home in a new country · Instrumental: learning English for university","Both: learning for a test","Both: making friends"], a:1,
+     why:"Integrative is about belonging; instrumental is about a practical goal."},
+    {lv:4, q:"What was the main reason aptitude testing fell out of favor after 1970?", o:["It closed doors on learners who might have succeeded anyway","The tests were too expensive","Researchers proved aptitude does not exist","The tests only worked in English"], a:0,
+     why:"Using scores to exclude learners was seen as unfair; research revived in the 1990s."},
+   ],
+   words:[["ئەسپ","esp","horse"],["مەڕ","meř","sheep"],["بزن","bizin","goat"],["مریشک","mirîşk","chicken"],
+          ["گا","ga","ox"],["ورچ","wirç","bear"],["گورگ","gurg","wolf"],["ڕێوی","řêwî","fox"]],
+   ask:[6, 1, 3, 7, 5]},
+];
+const STUDY_SECONDS = 25;
+
+const G = () => GAMES[S.g];
+/* Build the run: levels in order; memory level = study screen + questions */
+function buildRun(g) {
+  const run = [], {q: Q, words: WORDS, ask: MEMORY_ASKED} = GAMES[g];
+  LEVELS.forEach((L, lv) => {
+    run.push({kind:"level", lv});
+    if (lv === 2) {
+      run.push({kind:"study"});
+      for (const w of MEMORY_ASKED) {
+        const others = shuffle(WORDS.map((x, k) => k).filter((k) => k !== w)).slice(0, 3);
+        const opts = shuffle([w, ...others]);
+        run.push({kind:"q", lv, mem:w, o:opts.map((k) => WORDS[k][2]), a:opts.indexOf(w),
+                  q:`What does this word mean?`, why:`${WORDS[w][0]} (${WORDS[w][1]}) means "${WORDS[w][2]}".`});
+      }
+    } else {
+      for (const item of Q.filter((x) => x.lv === lv)) {
+        const order = shuffle([0, 1, 2, 3]);
+        run.push({kind:"q", lv, q:item.q, o:order.map((k) => item.o[k]), a:order.indexOf(item.a), why:item.why});
+      }
+    }
+  });
+  run.push({kind:"end"});
+  return run;
+}
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* ------------------------------ state ------------------------------ */
+const store = {
+  get(k, f) { try { const v = localStorage.getItem("lps4:" + k); return v == null ? f : JSON.parse(v); } catch (e) { return f; } },
+  set(k, v) { try { localStorage.setItem("lps4:" + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem("lps4:" + k); } catch (e) {} },
+};
+let S = null;               // {team, run, i, score, answers:[{i, correct, pts}], started, answered, deadline}
+let tick = null;
+const TOTAL_Q = () => S.run.filter((x) => x.kind === "q").length;
+const maxBase = () => S.run.filter((x) => x.kind === "q").reduce((t, x) => t + LEVELS[x.lv].pts, 0);
+
+function save() { store.set("game", S); }
+
+/* ------------------------------ render ------------------------------ */
+function renderLadder() {
+  const cur = S ? S.run[S.i] : null;
+  const curLv = cur && cur.lv != null ? cur.lv : (cur && cur.kind === "study" ? 2 : (cur && cur.kind === "end" ? 5 : -1));
+  $("ladder").innerHTML = LEVELS.map((L, k) => `<div class="rung${k === curLv ? " on" : ""}${k < curLv ? " done" : ""}"><span class="lv">${k + 1}. ${esc(L.name)}</span><span class="pt">${L.pts}</span></div>`).join("");
+  $("who").innerHTML = S && S.team ? `${esc(GAMES[S.g].name)} · Group: <b>${esc(S.team)}</b>` : "";
+}
+
+function barHTML(showTimer) {
+  const qi = S.run.slice(0, S.i + 1).filter((x) => x.kind === "q").length;
+  return `<div class="bar">
+    <span class="score" id="score">${S.score}<small>points</small></span>
+    <span class="qcount">${S.run[S.i].kind === "q" ? `Question ${qi} of ${TOTAL_Q()}` : `${qi} of ${TOTAL_Q()} answered`}</span>
+    ${showTimer ? `<span class="tbar" id="tbar"><i id="tfill"></i></span><span class="tnum" id="tnum"></span>` : ""}
+  </div>`;
+}
+
+function render() {
+  stopTick();
+  renderLadder();
+  const m = $("main");
+  if (!S) {
+    m.innerHTML = `<section class="card hero">
+      <div class="eyebrow"><span>LING 114 · Week 9 · Aptitude and motivation</span><span>One device per group</span></div>
+      <h1>Learner Lab Arcade</h1>
+      <p>Four games on aptitude and motivation. Each has 21 questions in five levels that get harder and are worth more. The timer starts as soon as a question appears, and faster correct answers earn a bonus of up to 50%. At the end you see every question with its answer and explanation.</p>
+      <label class="field" for="team">Group name<input id="team" maxlength="28" autocomplete="off" placeholder="e.g., The Polyglots"></label>
+      <p class="err" id="err"></p>
+      <div class="games">${GAMES.map((g, k) => `<button type="button" class="game" data-g="${k}"><span class="gn">Game ${k + 1}</span><span class="gt">${esc(g.name)}</span><span class="gb">${esc(g.blurb)}</span><span class="gs">Start →</span></button>`).join("")}</div>
+      <div class="levels">${LEVELS.map((L, k) => `<div class="lrow"><span class="n">${k + 1}</span><span>${esc(L.name)}</span><span class="p">${L.pts} pts each</span><span class="t">${L.sec}s</span></div>`).join("")}</div>
+    </section>`;
+    const begin = (g) => {
+      const t = $("team").value.trim();
+      if (!t) { $("err").textContent = "Type your group's name first, then choose a game."; $("team").focus(); return; }
+      S = {g, team: t, run: buildRun(g), i: 0, score: 0, answers: [], answered: null, deadline: 0, started: Date.now()};
+      save(); render();
+    };
+    m.querySelectorAll(".game").forEach((b) => b.addEventListener("click", () => begin(+b.dataset.g)));
+    return;
+  }
+  const c = S.run[S.i];
+  if (c.kind === "level") {
+    const L = LEVELS[c.lv], n = S.run.filter((x) => x.kind === "q" && x.lv === c.lv).length;
+    m.innerHTML = `${barHTML(false)}<section class="card hero">
+      <div class="eyebrow"><span>Level ${c.lv + 1} of ${LEVELS.length}</span><span>${n} questions · ${L.pts} points each · ${L.sec}s per question</span></div>
+      <h1>${esc(L.name)}</h1>
+      <p>${esc(L.about)}</p>
+      <div class="actions"><button class="btn gold" id="go">${c.lv === 2 ? "Show the words" : "Start level"}</button></div>
+    </section>`;
+    $("go").addEventListener("click", next); $("go").focus();
+  } else if (c.kind === "study") {
+    if (!S.deadline) { S.deadline = Date.now() + STUDY_SECONDS * 1000; save(); }
+    m.innerHTML = `${barHTML(true)}<section class="card">
+      <div class="eyebrow"><span>Level 3 · Memory sprint</span><span>Study now</span></div>
+      <h2 class="q">Remember what each word means</h2>
+      <div class="words">${G().words.map(([ku, lat, en]) => `<div class="word"><span class="ku" lang="ckb" dir="rtl">${ku}</span><span class="lat">${lat}</span><span class="en">${en}</span></div>`).join("")}</div>
+      <div class="actions"><button class="btn ghost" id="ready">We're ready</button></div>
+    </section>`;
+    $("ready").addEventListener("click", next);
+    startTick(STUDY_SECONDS, next);
+  } else if (c.kind === "q") {
+    const L = LEVELS[c.lv], done = S.answered;
+    if (!done && !S.deadline) { S.deadline = Date.now() + L.sec * 1000; save(); }
+    const head = c.mem != null
+      ? `<h2 class="q">${esc(c.q)}</h2><div class="qku" lang="ckb" dir="rtl">${G().words[c.mem][0]}</div>`
+      : `<h2 class="q">${esc(c.q)}</h2>`;
+    let fb = "";
+    if (done) {
+      const ok = done.correct;
+      fb = `<div class="fb ${ok ? "ok" : "no"}"><strong>${ok ? `Correct! +${done.pts}` : (done.timeout ? "Time's up. +0" : "Not quite. +0")}</strong><span>${esc(c.why)}</span></div>`;
+    }
+    m.innerHTML = `${barHTML(!done)}<section class="card">
+      <div class="eyebrow"><span>Level ${c.lv + 1} · ${esc(L.name)}</span><span>${L.pts} points</span></div>
+      ${head}
+      <div class="opts">${c.o.map((o, k) => {
+        let cls = "";
+        if (done) cls = k === c.a ? " right" : (k === done.pick ? " picked-wrong" : " dim");
+        return `<button type="button" class="opt${cls}" data-k="${k}"${done ? " disabled" : ""}><b>${"ABCD"[k]}</b><span>${esc(o)}</span></button>`;
+      }).join("")}</div>
+      ${fb}
+      ${done ? `<div class="actions"><button class="btn gold" id="nextq">${S.run[S.i + 1].kind === "end" ? "See our score" : "Next question"}</button></div>` : ""}
+    </section>`;
+    if (done) { $("nextq").addEventListener("click", next); $("nextq").focus(); }
+    else {
+      m.querySelectorAll(".opt").forEach((b) => b.addEventListener("click", () => answer(+b.dataset.k)));
+      startTick(L.sec, () => answer(-1));
+    }
+  } else if (c.kind === "end") {
+    const right = S.answers.filter((a) => a.correct).length, total = TOTAL_Q();
+    const secs = Math.round(((S.finished || Date.now()) - S.started) / 1000);
+    if (!S.finished) { S.finished = Date.now(); save(); }
+    const pct = S.score / (maxBase() * 1.5);
+    const title = pct > .75 ? "Aptitude legends" : pct > .55 ? "Polyglots in training" : pct > .35 ? "Rising learners" : "Motivated beginners";
+    const W = G().words;
+    const review = S.answers.map((a, n) => {
+      const c = S.run[a.i];
+      const prompt = c.mem != null ? `What does ${W[c.mem][0]} (${W[c.mem][1]}) mean?` : c.q;
+      const yours = a.pick == null ? "" : (a.pick < 0 ? "No answer (time ran out)" : c.o[a.pick]);
+      return `<div class="rv ${a.correct ? "rv-ok" : "rv-no"}">
+        <div class="rvh"><span class="rvn">${n + 1}</span><span class="rvm">${a.correct ? "✓ Correct" : "✗ Wrong"}</span><span class="rvp">+${a.pts}</span></div>
+        <div class="rvq">${esc(prompt)}</div>
+        ${a.correct ? "" : `<div class="rvy">Your answer: ${esc(yours)}</div>`}
+        <div class="rva">Correct answer: <b>${esc(c.o[c.a])}</b></div>
+        <div class="rvw">${esc(c.why)}</div>
+      </div>`;
+    }).join("");
+    m.innerHTML = `<section class="card hero">
+      <div class="eyebrow"><span>${esc(G().name)} · Final score · ${esc(S.team)}</span><span>Show this screen to your instructor</span></div>
+      <div class="big">${S.score}</div>
+      <h1 style="font-size:clamp(24px,3vw,36px)">${title}</h1>
+      <div class="stats">
+        <div class="stat"><b>${right} / ${total}</b>correct</div>
+        <div class="stat"><b>${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}</b>total time</div>
+        <div class="stat"><b>${S.answers.reduce((t, a) => t + (a.bonus || 0), 0)}</b>speed bonus</div>
+      </div>
+      <h2 class="q" style="font-size:22px">All questions, answers and explanations</h2>
+      <div class="review">${review}</div>
+      <div class="actions"><button class="btn ghost" id="again">Back to the four games</button></div>
+    </section>`;
+    $("again").addEventListener("click", () => { if ($("again").dataset.sure) { store.del("game"); S = null; render(); } else { $("again").dataset.sure = "1"; $("again").textContent = "Leave this score? Click again to go back"; } });
+  }
+}
+
+/* ------------------------------ timer & answers ------------------------------ */
+function startTick(sec, onEnd) {
+  const paint = () => {
+    const left = Math.max(0, (S.deadline - Date.now()) / 1000);
+    const f = $("tfill"), n = $("tnum"), bar = $("tbar");
+    if (f) f.style.transform = `scaleX(${left / sec})`;
+    if (n) n.textContent = Math.ceil(left);
+    if (bar) bar.classList.toggle("low", left <= 5);
+    if (left <= 0) { stopTick(); onEnd(); }
+  };
+  paint();
+  tick = setInterval(paint, 250);
+}
+function stopTick() { if (tick) { clearInterval(tick); tick = null; } }
+
+function answer(k) {
+  const c = S.run[S.i];
+  if (S.answered) return;
+  stopTick();
+  const L = LEVELS[c.lv];
+  const left = Math.max(0, (S.deadline - Date.now()) / 1000);
+  const correct = k === c.a;
+  const bonus = correct ? Math.round(L.pts * 0.5 * Math.min(1, left / L.sec) / 10) * 10 : 0;
+  const pts = correct ? L.pts + bonus : 0;
+  S.score += pts;
+  S.answered = {pick: k, correct, pts, bonus, timeout: k < 0};
+  S.answers.push({i: S.i, correct, pts, bonus, pick: k});
+  save(); render();
+  const sc = $("score"); if (sc && pts) sc.classList.add("pop");
+}
+
+function next() {
+  stopTick();
+  S.i = Math.min(S.i + 1, S.run.length - 1);
+  S.answered = null; S.deadline = 0;
+  save(); render();
+}
+
+/* ------------------------------ boot ------------------------------ */
+function start(data) {
+  const saved = (data && data.S) || store.get("game", null);
+  if (saved && Array.isArray(saved.run) && saved.run.length && GAMES[saved.g]) S = saved;
+  render();
+}
+try { window.claude?.hot?.snapshot?.(() => ({S})); } catch (e) {}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
+
+</body>
+</html>
