@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape the Language Lab</title>
+<style>
+/* ============================================================
+   Escape the Language Lab · LING 114 · Southern Kurdish edition
+   To change puzzles, points or timing, edit the settings at the
+   top of the <script>.
+   ============================================================ */
+:root{
+  --bg:#f4ede5; --card:#fbf7f2; --ink:#3a2a22; --muted:#7a675c; --line:#e7dbcf;
+  --accent:#b4573b; --accent-ink:#fbf7f2; --good:#5f7a52; --bad:#a8402c; --soft:#f3e2d7; --warn:#f3ddd4;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#1c1512; --card:#261d19; --ink:#f4ede5; --muted:#c2ad9f; --line:#3a2c25;
+         --accent:#d77a5c; --accent-ink:#1c1512; --good:#93b583; --bad:#e58b74; --soft:#33251f; --warn:#3d2722; }
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+header{margin:8px 0 12px}
+h1,h2{font-family:Georgia,"Times New Roman",serif;font-weight:600;letter-spacing:.01em}
+h1{font-size:1.6rem;margin:0}
+h2{font-size:1.25rem;margin:0 0 4px}
+.sub{color:var(--muted);margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+     background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 16px;margin-bottom:12px;
+     position:sticky;top:8px;z-index:5}
+.bar .lab{color:var(--muted);font-size:.85rem;display:block;line-height:1.1}
+.bar .val{font-weight:800;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.bar{flex-wrap:nowrap}
+.bar > div{min-width:0}
+.bar > div:first-child{flex:1}
+#teamName{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:480px){ .bar{gap:10px;padding:8px 12px} .bar .val{font-size:1.05rem} .bar .lab{font-size:.75rem} }
+.countdown.low .val{color:var(--bad)}
+.locks{display:flex;gap:8px;margin:0 0 16px}
+.locks span{flex:1;height:8px;border-radius:4px;background:var(--line)}
+.locks span.done{background:var(--good)}
+.locks span.now{background:var(--accent)}
+table{width:100%;border-collapse:collapse;margin:12px 0}
+td,th{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+th{color:var(--muted);font-weight:600;font-size:.9rem}
+td.ku{font-weight:600;font-size:1.08rem;width:45%}
+td.en{color:var(--muted)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.task{margin:18px 0 6px;font-weight:600}
+.q{margin:14px 0}
+.q label{display:block;margin-bottom:6px;font-weight:600}
+.row{display:flex;gap:8px}
+input[type=text]{flex:1;min-width:0;font:inherit;font-size:1.1rem;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+input[type=text]:focus{outline:none;border-color:var(--accent)}
+input.ok{border-color:var(--good)} input.no{border-color:var(--bad)}
+.mark{min-width:28px;align-self:center;font-weight:700}
+.mark.ok{color:var(--good)} .mark.no{color:var(--bad)}
+.keys{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px}
+button.key{min-width:44px;font-weight:600}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button.ghost{background:transparent}
+button:disabled{opacity:.5;cursor:default}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.hint{background:var(--soft);border-radius:10px;padding:10px 14px;margin-top:12px}
+.alert{background:var(--warn);border-radius:10px;padding:10px 14px;margin-top:12px;font-weight:600}
+.msg{margin-top:12px;font-weight:600}
+.msg.ok{color:var(--good)} .msg.no{color:var(--bad)}
+.pill{display:inline-block;font-size:.85rem;padding:2px 10px;border-radius:999px;background:var(--soft);margin-left:6px;font-weight:600}
+details{margin-top:8px} summary{cursor:pointer;color:var(--muted)}
+.center{text-align:center}
+.big{font-size:3rem;font-weight:800;font-variant-numeric:tabular-nums;margin:4px 0}
+.word{display:inline-block;font-size:1.8rem;letter-spacing:.25em;font-weight:800;padding:8px 18px;border:3px dashed var(--good);border-radius:12px;color:var(--good);margin:8px 0}
+.note{color:var(--muted);font-size:.92rem}
+ul.rules{padding-left:20px;margin:8px 0}
+footer{color:var(--muted);font-size:.85rem;text-align:center;margin:24px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Escape the Language Lab</h1>
+    <p class="sub">Crack Southern Kurdish, one lock at a time.</p>
+  </header>
+  <div class="bar" id="bar" hidden>
+    <div><span class="lab">Team</span><span class="val" id="teamName"></span></div>
+    <div class="countdown" id="cdBox"><span class="lab">Time left</span><span class="val" id="countdown">3:00</span></div>
+    <div><span class="lab">This lock</span><span class="val" id="lockPts">0</span></div>
+    <div><span class="lab">Total score</span><span class="val" id="total">0</span></div>
+  </div>
+  <div class="locks" id="locks" hidden></div>
+  <main id="app"></main>
+  <footer>LING/GER/RSSS 114 · How to Learn a Foreign Language</footer>
+</div>
+
+<script>
+/* ===================== SETTINGS (edit here) =====================
+   points:   what the lock is worth
+   seconds:  time on the clock for the lock
+   Every time the clock runs out, the team gets EXTRA_SECONDS more
+   and loses 10% of the lock's points. A hint costs the same 10%.
+   A lock's points never go below 0. All answers must be right to
+   open a lock. Answers ignore case, spaces and punctuation, and
+   ş/î/ê/û may be typed as s/i/e/u.                                 */
+const EXTRA_SECONDS = 45;
+const PENALTY_SHARE = 0.10;
+const SECRET_WORD = "POLYGLOT";
+const PUZZLES = [
+  { title: "Lock 1 · Right now", points: 1000, seconds: 180,
+    intro: "Here are some Southern Kurdish verbs in the present tense. Work out how the verb shows who is doing the action.",
+    shown: [["şikinim","I break"],["şikinîd","you (sg.) break"],["şikinêd","he/she breaks"],["şikinîmin","we break"],
+            ["şikinîdin","you (pl.) break"],["şikinin","they break"],["şurim","I wash"],["şurîd","you (sg.) wash"],
+            ["şurin","they wash"],["kefim","I fall"],["kefin","they fall"]],
+    ask: [{en:"you (pl.) wash", answers:["şurîdin"]},{en:"we fall", answers:["kefîmin"]},{en:"he/she washes", answers:["şurêd"]}],
+    hints: ["Compare “I break” and “I wash.” Which part changes, and which part stays the same?",
+            "Every verb takes the same endings: -im, -îd, -êd, -îmin, -îdin, -in."] },
+  { title: "Lock 2 · Yesterday", points: 1500, seconds: 180,
+    intro: "Now the past tense. Something about the verb changes, and something stays the same.",
+    shown: [["nardim","I sent"],["nardîd","you (sg.) sent"],["nard","he/she sent"],["nardîmin","we sent"],["nardin","they sent"],
+            ["keftim","I fell"],["keft","he/she fell"],["şurdim","I washed"],["şurdin","they washed"],["birdim","I took"]],
+    ask: [{en:"you (pl.) fell", answers:["keftîdin"]},{en:"we washed", answers:["şurdîmin"]},{en:"he/she took", answers:["bird"]}],
+    hints: ["The past uses a different stem. Find it by removing the ending from “I fell,” “I washed” and “I took.”",
+            "No past form here means “you (pl.)”. Look back at Lock 1: the endings are the same in both tenses, except for he/she."] },
+  { title: "Lock 3 · Not true!", points: 2000, seconds: 180,
+    intro: "Time to say no. Look carefully: is the negative the same in the present and the past?",
+    shown: [["nîyeşikinim","I do not break"],["nîyekefêd","he/she does not fall"],["nenardîmin","we did not send"],["nenardin","they did not send"]],
+    ask: [{en:"you (sg.) do not wash", answers:["nîyeşurîd"]},{en:"I did not fall", answers:["nekeftim"]},{en:"they do not break", answers:["nîyeşikinin"]}],
+    hints: ["The negative is a prefix, added to the front of the verb.",
+            "Present: nîye- … Past: ne- …"] },
+  { title: "Lock 4 · Mine and yours", points: 2500, seconds: 180,
+    intro: "Now nouns. How do you say whose thing it is?",
+    shown: [["kitaw","book"],["kitawegem","my book"],["kitaweged","your (sg.) book"],["kitawegey","his/her book"],
+            ["kitawegeman","our book"],["kitawegeyan","their book"],["mal","house"],["malegem","my house"]],
+    ask: [{en:"your (pl.) house", answers:["malegedan"]},{en:"our house", answers:["malegeman"]},{en:"his/her house", answers:["malegey"]}],
+    hints: ["Every “book” form shares a part after kitaw-. What is it?",
+            "noun + -ege- + an ending: -m (my), -d (your), -y (his/her), -man (our), -yan (their). The plural endings add -an to the singular ones."] },
+  { title: "Final lock · Put it all together", points: 5000, seconds: 300,
+    intro: "Two sentences to escape. In Southern Kurdish, the object comes first and the verb comes last, as in Persian. The second sentence is the hardest challenge in the lab.",
+    shown: [],
+    ask: [{en:"We did not take their book.", answers:["kitawegeyan nebirdîmin"]},
+          {en:"You (pl.) do not wash your (pl.) house.", answers:["malegedan nîyeşurîdin"]}],
+    hints: ["Sentence 1 needs “their book,” the past negative, the past stem of “take,” and the ending for “we.”",
+            "Sentence 2 is in the present: “your (pl.) house” from Lock 4, then the present negative + the stem of “wash” + the ending for “you (pl.).”"] }
+];
+const SPECIAL = ["ş","î","ê","û"];
+const MAX_TOTAL = PUZZLES.reduce((a,p)=>a+p.points,0);
+/* =============================================================== */
+
+const norm = s => s.toLowerCase().normalize("NFC")
+  .replace(/ş/g,"s").replace(/î/g,"i").replace(/ê/g,"e").replace(/û/g,"u")
+  .replace(/[^a-z\s]/g,"").replace(/\s+/g," ").trim();
+const KEY = "escape-language-lab-v2";
+const fresh = () => ({ team:"", start:null, stage:0, deadline:null, pen:{}, hints:{}, earned:{}, typed:{}, end:null, flash:"" });
+let S = load() || fresh();
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = sec => `${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
+const cost = k => Math.round(PUZZLES[k].points * PENALTY_SHARE);
+const lockNow = k => Math.max(0, PUZZLES[k].points - ((S.pen[k]||0) + (S.hints[k]||0)) * cost(k));
+const total = () => Object.values(S.earned).reduce((a,b)=>a+b,0);
+
+function startLock(k){ S.deadline = Date.now() + PUZZLES[k].seconds*1000; }
+
+// Clock: when time runs out, add EXTRA_SECONDS and a penalty (repeats if needed, also after a reload)
+function tick(){
+  if(!S.start || S.end) return;
+  const k = S.stage; let changed = false;
+  while(Date.now() >= S.deadline){
+    S.deadline += EXTRA_SECONDS*1000; S.pen[k] = (S.pen[k]||0) + 1; changed = true;
+    S.flash = `Time’s up! +${EXTRA_SECONDS} seconds, −${cost(k)} points.`;
+  }
+  const left = Math.max(0, Math.ceil((S.deadline - Date.now())/1000));
+  $("countdown").textContent = fmt(left);
+  $("cdBox").classList.toggle("low", left <= 30);
+  $("lockPts").textContent = lockNow(k);
+  $("total").textContent = total();
+  if(changed){ save(); const f = $("flash"); if(f){ f.textContent = S.flash; f.hidden = false; } }
+}
+setInterval(tick, 250);
+
+function render(){
+  const app = $("app");
+  if(!S.start){ $("bar").hidden = true; $("locks").hidden = true; return renderStart(app); }
+  $("locks").hidden = false;
+  $("locks").innerHTML = PUZZLES.map((_,i)=>`<span class="${i<S.stage?'done':i===S.stage&&!S.end?'now':''}"></span>`).join("");
+  if(S.end){ $("bar").hidden = true; return renderEnd(app); }
+  $("bar").hidden = false; $("teamName").textContent = S.team;
+  renderPuzzle(app, S.stage); tick();
+}
+
+function renderStart(app){
+  app.innerHTML = `
+  <div class="card">
+    <h2>Your mission</h2>
+    <p>You are trapped in the Language Lab. To escape, your team must crack <b>five locks</b> written in
+    <b>Southern Kurdish</b>, a language spoken in western Iran and eastern Iraq. Nobody will tell you the rules:
+    you have to discover them from the examples, like a real language learner.</p>
+    <table>
+      <tr><th>Lock</th><th class="num">Points</th><th class="num">Time</th><th class="num">Each extra ${EXTRA_SECONDS} s</th></tr>
+      ${PUZZLES.map((p,i)=>`<tr><td>${i===PUZZLES.length-1?"Final":i+1}</td><td class="num">${p.points.toLocaleString()}</td><td class="num">${fmt(p.seconds)}</td><td class="num">−${cost(i)}</td></tr>`).join("")}
+    </table>
+    <ul class="rules">
+      <li>Get <b>all</b> the answers right to open a lock. The clock then resets for the next one.</li>
+      <li>If the clock runs out, you get ${EXTRA_SECONDS} more seconds, but you lose 10% of the lock’s points. This can happen more than once.</li>
+      <li>A hint also costs 10% of the lock’s points.</li>
+      <li>Type <b>ş î ê û</b> with the buttons, or just type s, i, e, u.</li>
+      <li>Highest score out of ${MAX_TOTAL.toLocaleString()} wins. If scores tie, the faster team wins.</li>
+    </ul>
+    <div class="q"><label for="team">Team name</label>
+      <div class="row"><input type="text" id="team" maxlength="30" placeholder="e.g. The Polyglots"></div></div>
+    <div class="actions"><button class="primary" id="go">Start Lock 1</button></div>
+  </div>`;
+  $("go").onclick = () => {
+    const t = $("team").value.trim();
+    if(!t){ $("team").focus(); $("team").classList.add("no"); return; }
+    S = fresh(); S.team = t; S.start = Date.now(); startLock(0); save(); render();
+  };
+}
+
+let lastInput = null;
+function renderPuzzle(app, k){
+  const P = PUZZLES[k], used = S.hints[k] || 0;
+  const notebook = PUZZLES.slice(0,k).filter(p=>p.shown.length).map(p => `
+      <details><summary>${esc(p.title)}</summary><table>${p.shown.map(([ku,en])=>`<tr><td class="ku">${esc(ku)}</td><td class="en">${esc(en)}</td></tr>`).join("")}
+      ${p.ask.map(a=>`<tr><td class="ku">${esc(a.answers[0])}</td><td class="en">${esc(a.en)} ✓</td></tr>`).join("")}</table></details>`).join("");
+  app.innerHTML = `
+  <div class="card">
+    <h2>${esc(P.title)}<span class="pill">${P.points.toLocaleString()} points</span></h2>
+    <p class="sub">${esc(P.intro)}</p>
+    ${P.shown.length ? `<table>${P.shown.map(([ku,en])=>`<tr><td class="ku">${esc(ku)}</td><td class="en">${esc(en)}</td></tr>`).join("")}</table>` : ""}
+    <p class="task">Your turn: how do you say…</p>
+    ${P.ask.map((a,i)=>`
+      <div class="q"><label for="a${i}">${i+1}. ${esc(a.en)}</label>
+        <div class="row"><input type="text" id="a${i}" autocomplete="off" autocapitalize="off" spellcheck="false"
+          value="${esc((S.typed[k]||{})[i]||"")}"><span class="mark" id="m${i}"></span></div></div>`).join("")}
+    <div class="keys">${SPECIAL.map(c=>`<button class="key" data-c="${c}" type="button">${c}</button>`).join("")}</div>
+    <div class="actions">
+      <button class="primary" id="check">Check</button>
+      <button class="ghost" id="hint" ${used>=P.hints.length?"disabled":""}>${used>=P.hints.length?"No more hints":`Hint (−${cost(k)} points)`}</button>
+    </div>
+    <div id="flash" class="alert" ${S.flash?"":"hidden"}>${esc(S.flash)}</div>
+    <div id="msg" class="msg"></div>
+    ${P.hints.slice(0,used).map((h,i)=>`<div class="hint"><b>Hint ${i+1}:</b> ${esc(h)}</div>`).join("")}
+  </div>
+  ${notebook ? `<div class="card"><h2>Notebook</h2><p class="note">Everything you have unlocked so far.</p>${notebook}</div>` : ""}`;
+
+  app.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("focus", () => lastInput = inp);
+    inp.addEventListener("keydown", e => { if(e.key==="Enter") check(k); });
+  });
+  lastInput = $("a0");
+  app.querySelectorAll(".key").forEach(b => b.onclick = () => {
+    const inp = lastInput || $("a0"); const s = inp.selectionStart ?? inp.value.length, e = inp.selectionEnd ?? s;
+    inp.value = inp.value.slice(0,s) + b.dataset.c + inp.value.slice(e);
+    inp.focus(); inp.setSelectionRange(s+1, s+1);
+  });
+  $("check").onclick = () => check(k);
+  $("hint").onclick = () => { keepTyped(k); S.hints[k] = used + 1; save(); render(); };
+}
+
+function keepTyped(k){ S.typed[k] = S.typed[k] || {}; PUZZLES[k].ask.forEach((_,i)=>{ const x=$("a"+i); if(x) S.typed[k][i]=x.value; }); }
+
+let solving = false;
+function check(k){
+  if(solving) return;
+  const P = PUZZLES[k]; let all = true; keepTyped(k);
+  P.ask.forEach((a,i) => {
+    const inp = $("a"+i), m = $("m"+i);
+    const ok = a.answers.some(x => norm(x) === norm(inp.value));
+    inp.classList.toggle("ok", ok); inp.classList.toggle("no", !ok && inp.value.trim()!=="");
+    m.textContent = ok ? "✓" : (inp.value.trim() ? "✗" : ""); m.className = "mark " + (ok ? "ok" : "no");
+    if(!ok) all = false;
+  });
+  const msg = $("msg");
+  if(all){
+    solving = true;
+    S.earned[k] = lockNow(k); S.flash = "";
+    msg.className = "msg ok";
+    msg.textContent = `${k === PUZZLES.length-1 ? "The door opens" : "Click! The lock opens"}: +${S.earned[k].toLocaleString()} points.`;
+    save();
+    setTimeout(() => {
+      S.stage = k+1;
+      if(S.stage === PUZZLES.length) S.end = Date.now(); else startLock(S.stage);
+      save(); solving = false; render(); window.scrollTo(0,0);
+    }, 1200);
+  } else {
+    save(); msg.className = "msg no"; msg.textContent = "Not yet. Every answer must be right to open the lock.";
+  }
+}
+
+function renderEnd(app){
+  const t = Math.floor((S.end - S.start)/1000), when = new Date(S.end).toLocaleTimeString([], {hour:"numeric", minute:"2-digit", second:"2-digit"});
+  app.innerHTML = `
+  <div class="card center">
+    <h2>You escaped, ${esc(S.team)}!</h2>
+    <p class="sub">Show this screen to your instructor.</p>
+    <div class="big">${total().toLocaleString()}</div>
+    <p class="note">points out of ${MAX_TOTAL.toLocaleString()} · total time ${fmt(t)} · finished at ${when}</p>
+    <div class="word">${SECRET_WORD}</div>
+    <table>
+      <tr><th>Lock</th><th class="num">Worth</th><th class="num">Extra time</th><th class="num">Hints</th><th class="num">Earned</th></tr>
+      ${PUZZLES.map((p,i)=>`<tr><td>${i===PUZZLES.length-1?"Final":i+1}</td><td class="num">${p.points.toLocaleString()}</td><td class="num">${S.pen[i]||0}</td><td class="num">${S.hints[i]||0}</td><td class="num"><b>${(S.earned[i]||0).toLocaleString()}</b></td></tr>`).join("")}
+    </table>
+  </div>
+  <div class="card">
+    <h2>What did you just do?</h2>
+    <p>You learned the core of Southern Kurdish verb agreement, the past tense, negation and possession, without anyone
+    explaining a single rule. Which good-learner strategies did your team use? Did you <b>guess</b>, look for
+    <b>patterns</b>, <b>check</b> your answers against the examples? Who was comfortable not understanding everything at first?</p>
+  </div>
+  <div class="actions"><button class="ghost" id="reset">Start over (new team)</button></div>`;
+  $("reset").onclick = () => { if(confirmReset()){ S = fresh(); save(); render(); } };
+}
+// Two clicks to reset, so a finished result is not lost by accident (no browser dialogs)
+let armed = false;
+function confirmReset(){
+  if(armed) return true;
+  armed = true; const b = $("reset"); b.textContent = "Click again to confirm";
+  setTimeout(()=>{ armed=false; if($("reset")) $("reset").textContent="Start over (new team)"; }, 3000);
+  return false;
+}
+render();
+</script>
+</body>
+</html>
